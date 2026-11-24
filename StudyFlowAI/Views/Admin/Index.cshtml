@@ -1,0 +1,306 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan Quản trị";
+    var tongGioPomo = Model.TongPhutPomodoro / 60;
+    var phutDuPomo = Model.TongPhutPomodoro % 60;
+    var pomoTotalText = tongGioPomo > 0 ? $"{tongGioPomo}g {phutDuPomo}p" : $"{Model.TongPhutPomodoro} phút";
+}
+
+<!-- Banner đầu trang Admin -->
+<div class="sf-card p-4 mb-4 sf-admin-banner">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 mb-2">
+                <i class="bi bi-shield-lock-fill me-1"></i>Khu vực Quản trị viên
+            </span>
+            <h4 class="fw-bold mb-1">Bảng điều khiển Quản trị Hệ thống</h4>
+            <p class="text-muted small mb-0">
+                Theo dõi toàn bộ chỉ số sử dụng StudyFlow AI, tài liệu/đề thi mới tạo và quản lý trạng thái người dùng.
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="Admin" asp-action="Users" class="btn btn-sf-primary rounded-pill px-4">
+                <i class="bi bi-people-fill me-1"></i>Quản lý tài khoản (@Model.TongNguoiDung)
+            </a>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-grid-1x2 me-1"></i>Dashboard cá nhân
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 6 Thẻ thống kê toàn hệ thống -->
+<div class="row g-3 mb-4 row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-6">
+    <div class="col">
+        <a asp-controller="Admin" asp-action="Users" class="text-decoration-none text-reset d-block h-100">
+            <div class="sf-card sf-card-hover sf-kpi-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="sf-kpi-label">Người dùng</span>
+                    <span class="sf-kpi-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </span>
+                </div>
+                <div class="sf-kpi-value">@Model.TongNguoiDung</div>
+                <div class="sf-kpi-sub @(Model.SoTaiKhoanBiKhoa > 0 ? "text-danger" : "text-muted")">
+                    @(Model.SoTaiKhoanBiKhoa > 0 ? $"{Model.SoTaiKhoanBiKhoa} tài khoản đang bị khóa" : "Tất cả đang hoạt động")
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
+        <div class="sf-card sf-kpi-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="sf-kpi-label">Môn học</span>
+                <span class="sf-kpi-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </span>
+            </div>
+            <div class="sf-kpi-value">@Model.TongMonHoc</div>
+            <div class="sf-kpi-sub text-muted">Tổng môn học toàn hệ thống</div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="sf-card sf-kpi-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="sf-kpi-label">Tài liệu</span>
+                <span class="sf-kpi-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </span>
+            </div>
+            <div class="sf-kpi-value">@Model.TongTaiLieu</div>
+            <div class="sf-kpi-sub text-muted">PDF / DOCX / TXT đã tải lên</div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="sf-card sf-kpi-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="sf-kpi-label">Đề thi AI</span>
+                <span class="sf-kpi-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-patch-question-fill"></i>
+                </span>
+            </div>
+            <div class="sf-kpi-value">@Model.TongDeThi</div>
+            <div class="sf-kpi-sub text-muted">Bộ đề trắc nghiệm đã sinh</div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="sf-card sf-kpi-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="sf-kpi-label">Lượt làm bài</span>
+                <span class="sf-kpi-icon bg-secondary bg-opacity-10 text-secondary">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                </span>
+            </div>
+            <div class="sf-kpi-value">@Model.TongLuotLamBai</div>
+            <div class="sf-kpi-sub text-muted">
+                @(Model.DiemTrungBinhHeThong.HasValue ? $"Điểm TB: {Model.DiemTrungBinhHeThong.Value:0.00}/10" : "Chưa có lượt nộp bài")
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="sf-card sf-kpi-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="sf-kpi-label">Phiên Pomodoro</span>
+                <span class="sf-kpi-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="bi bi-stopwatch-fill"></i>
+                </span>
+            </div>
+            <div class="sf-kpi-value">@Model.TongPhienPomodoro</div>
+            <div class="sf-kpi-sub text-muted">Tổng cộng @pomoTotalText</div>
+        </div>
+    </div>
+</div>
+
+<!-- Top người dùng hoạt động -->
+<div class="sf-card p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-trophy-fill text-warning me-2"></i>Top người dùng hoạt động tích cực
+            </h5>
+            <span class="text-muted small">Xếp hạng theo tổng số môn học, tài liệu, lượt làm bài và phiên Pomodoro</span>
+        </div>
+        <a asp-controller="Admin" asp-action="Users" class="btn btn-sm btn-outline-primary rounded-pill">
+            Xem tất cả tài khoản
+        </a>
+    </div>
+
+    @if (Model.TopNguoiDung.Count == 0)
+    {
+        <div class="sf-empty-state py-4">
+            <i class="bi bi-people text-muted"></i>
+            <div class="text-muted small">Chưa có dữ liệu người dùng nào trong hệ thống.</div>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 sf-table">
+                <thead>
+                    <tr>
+                        <th style="width: 56px;">#</th>
+                        <th>Người dùng</th>
+                        <th class="text-center">Môn học</th>
+                        <th class="text-center">Tài liệu</th>
+                        <th class="text-center">Lượt làm bài</th>
+                        <th class="text-center">Phiên Pomodoro</th>
+                        <th class="text-end">Tổng hoạt động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < Model.TopNguoiDung.Count; i++)
+                    {
+                        var u = Model.TopNguoiDung[i];
+                        var rankBadge = i switch
+                        {
+                            0 => "bg-warning text-dark",
+                            1 => "bg-secondary text-white",
+                            2 => "bg-danger bg-opacity-75 text-white",
+                            _ => "bg-light text-secondary border"
+                        };
+                        <tr>
+                            <td><span class="badge rounded-pill @rankBadge">@(i + 1)</span></td>
+                            <td>
+                                <div class="fw-semibold">@u.HoTen</div>
+                                <div class="small text-muted">@u.Email</div>
+                            </td>
+                            <td class="text-center fw-medium">@u.SoMonHoc</td>
+                            <td class="text-center fw-medium">@u.SoTaiLieu</td>
+                            <td class="text-center fw-medium">@u.SoLuotLamBai</td>
+                            <td class="text-center fw-medium">@u.SoPhienPomodoro</td>
+                            <td class="text-end">
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">@u.TongHoatDong</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Tài liệu & Đề thi mới tạo gần đây -->
+<div class="row g-4">
+    <div class="col-xl-6">
+        <div class="sf-card p-4 h-100">
+            <div class="mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-file-earmark-arrow-up-fill text-info me-2"></i>Tài liệu mới tải lên gần đây
+                </h5>
+                <span class="text-muted small">6 tài liệu mới nhất trên toàn hệ thống</span>
+            </div>
+
+            @if (Model.TaiLieuGanDay.Count == 0)
+            {
+                <div class="sf-empty-state py-4">
+                    <i class="bi bi-file-earmark-x text-muted"></i>
+                    <div class="text-muted small">Chưa có tài liệu nào được tải lên.</div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 sf-table">
+                        <thead>
+                            <tr>
+                                <th>Tài liệu &amp; Môn học</th>
+                                <th>Người tạo</th>
+                                <th class="text-center">AI Tóm tắt</th>
+                                <th class="text-end">Ngày tải</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in Model.TaiLieuGanDay)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-truncate" style="max-width: 240px;" title="@doc.TieuDe">@doc.TieuDe</div>
+                                        <div class="small text-muted d-flex align-items-center gap-1">
+                                            <span class="sf-color-dot" style="width: 8px; height: 8px; background-color: @doc.MaMau;"></span>
+                                            <span>@doc.TenMonHoc</span>
+                                        </div>
+                                    </td>
+                                    <td class="small">@doc.NguoiTao</td>
+                                    <td class="text-center">
+                                        @if (doc.DaTomTatAI)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Đã tóm tắt</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-muted border rounded-pill">Chưa</span>
+                                        }
+                                    </td>
+                                    <td class="text-end small text-muted text-nowrap">@doc.NgayTaiLen.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-xl-6">
+        <div class="sf-card p-4 h-100">
+            <div class="mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-patch-question-fill text-success me-2"></i>Đề thi trắc nghiệm mới tạo
+                </h5>
+                <span class="text-muted small">6 bộ đề mới nhất do người dùng khởi tạo</span>
+            </div>
+
+            @if (Model.DeThiGanDay.Count == 0)
+            {
+                <div class="sf-empty-state py-4">
+                    <i class="bi bi-journal-x text-muted"></i>
+                    <div class="text-muted small">Chưa có đề thi nào được tạo.</div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 sf-table">
+                        <thead>
+                            <tr>
+                                <th>Đề thi &amp; Môn học</th>
+                                <th>Người tạo</th>
+                                <th class="text-center">Độ khó</th>
+                                <th class="text-end">Câu / Lượt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var quiz in Model.DeThiGanDay)
+                            {
+                                var (doKhoText, doKhoClass) = quiz.DoKho switch
+                                {
+                                    "De" => ("Dễ", "bg-success bg-opacity-10 text-success"),
+                                    "Kho" => ("Khó", "bg-danger bg-opacity-10 text-danger"),
+                                    _ => ("Trung bình", "bg-warning bg-opacity-10 text-warning")
+                                };
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-truncate" style="max-width: 240px;" title="@quiz.TieuDe">@quiz.TieuDe</div>
+                                        <div class="small text-muted">@quiz.TenMonHoc &bull; @quiz.NgayTao.ToString("dd/MM/yyyy")</div>
+                                    </td>
+                                    <td class="small">@quiz.NguoiTao</td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill @doKhoClass">@doKhoText</span>
+                                    </td>
+                                    <td class="text-end small text-nowrap">
+                                        <span class="fw-semibold">@quiz.SoCauHoi</span> câu / <span class="text-muted">@quiz.SoLuotLam lượt</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - StudyFlow AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="sf-auth-wrapper">
+        <div class="sf-auth-card">
+            <div class="row g-0">
+                <div class="col-lg-5 sf-auth-banner d-none d-lg-flex">
+                    <div>
+                        <a asp-controller="Home" asp-action="Index" class="d-inline-flex align-items-center gap-2 text-decoration-none text-white mb-4">
+                            <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
+                            <span class="fw-bold fs-5">StudyFlow AI</span>
+                        </a>
+                        <h2 class="fw-bold fs-3 mb-3">Học tập thông minh, ôn thi hiệu quả cùng AI Gemini</h2>
+                        <p class="text-white-50 small mb-4">
+                            Biến slide và giáo trình PDF/DOCX thành bản tóm tắt trực quan, đề trắc nghiệm tự động và lịch ôn tập cá nhân hóa.
+                        </p>
+
+                        <div class="sf-auth-feature">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <div>
+                                <div class="fw-semibold small">Tóm tắt tài liệu tức thì</div>
+                                <div class="text-white-50" style="font-size: 0.78rem;">Trích xuất nội dung PDF, DOCX, TXT và tóm lược trọng tâm.</div>
+                            </div>
+                        </div>
+                        <div class="sf-auth-feature">
+                            <i class="bi bi-patch-check"></i>
+                            <div>
+                                <div class="fw-semibold small">AI Quiz Hub &amp; Giải thích chi tiết</div>
+                                <div class="text-white-50" style="font-size: 0.78rem;">Tạo đề thi theo độ khó, đếm ngược và chỉ rõ lỗ hổng kiến thức.</div>
+                            </div>
+                        </div>
+                        <div class="sf-auth-feature mb-0">
+                            <i class="bi bi-calendar-check"></i>
+                            <div>
+                                <div class="fw-semibold small">Lịch học AI &amp; Pomodoro</div>
+                                <div class="text-white-50" style="font-size: 0.78rem;">Tự động sắp lịch ôn thi và giữ nhịp tập trung mỗi ngày.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="small text-white-50 pt-3 border-top border-white border-opacity-10">
+                        &copy; @DateTime.Now.Year StudyFlow AI
+                    </div>
+                </div>
+
+                <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center">
+                    <div class="d-lg-none mb-4 text-center">
+                        <a asp-controller="Home" asp-action="Index" class="d-inline-flex align-items-center gap-2 text-decoration-none text-dark">
+                            <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
+                            <span class="fw-bold fs-5">StudyFlow AI</span>
+                        </a>
+                    </div>
+
+                    @if (TempData["SuccessMessage"] is string successMsg)
+                    {
+                        <div class="alert alert-success rounded-3 border-0 small py-2 mb-3">
+                            <i class="bi bi-check-circle-fill me-1"></i>@successMsg
+                        </div>
+                    }
+
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

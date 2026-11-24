@@ -1,0 +1,723 @@
+@model DashboardViewModel?
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true && Model is not null;
+    ViewData["Title"] = isAuthenticated ? "Bảng điều khiển học tập" : "Trang chủ";
+}
+
+@if (!isAuthenticated)
+{
+    <!-- ==================== LANDING PAGE (CHƯA ĐĂNG NHẬP) ==================== -->
+    <div class="sf-hero sf-landing-hero mb-4 shadow-sm">
+        <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+            <div class="col-lg-7">
+                <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-2 mb-3">
+                    <i class="bi bi-stars me-1"></i>Nền tảng Học tập &amp; Ôn thi Cá nhân hóa cùng Google Gemini AI
+                </span>
+                <h2 class="fw-bold display-6 mb-3">Học thông minh hơn, ôn thi vững vàng hơn với StudyFlow AI</h2>
+                <p class="text-white text-opacity-75 mb-4 fs-6">
+                    Biến giáo trình PDF/DOCX dài hàng trăm trang thành bản tóm tắt súc tích, bộ đề trắc nghiệm sát trọng tâm, lịch ôn thi cá nhân hóa và những phiên tập trung Pomodoro hiệu quả.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-light text-primary fw-semibold px-4 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-rocket-takeoff-fill me-1"></i>Bắt đầu ngay
+                    </a>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light fw-medium px-4 py-2 rounded-pill">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="bg-white bg-opacity-10 rounded-4 p-4 border border-white border-opacity-25 backdrop-blur">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="small fw-semibold text-white-50 text-uppercase">Trọn bộ 4 trụ cột học tập</span>
+                        <span class="badge bg-info text-dark rounded-pill">Miễn phí</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="sf-landing-pill">
+                            <i class="bi bi-file-earmark-richtext text-info"></i>
+                            <span>Trích xuất &amp; Tóm tắt tài liệu PDF / DOCX bằng AI</span>
+                        </div>
+                        <div class="sf-landing-pill">
+                            <i class="bi bi-patch-check-fill text-warning"></i>
+                            <span>Sinh đề trắc nghiệm tự động, chấm điểm &amp; giải thích</span>
+                        </div>
+                        <div class="sf-landing-pill">
+                            <i class="bi bi-calendar2-check-fill text-success"></i>
+                            <span>AI Study Planner chia lịch ôn theo ngày thi</span>
+                        </div>
+                        <div class="sf-landing-pill">
+                            <i class="bi bi-stopwatch-fill text-light"></i>
+                            <span>Pomodoro Focus &amp; Biểu đồ theo dõi tiến bộ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Trụ cột tính năng -->
+    <div class="mb-3 d-flex flex-wrap justify-content-between align-items-end gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">4 trụ cột giúp bạn bứt phá kết quả học tập</h4>
+            <p class="text-muted small mb-0">Mọi công cụ cần thiết cho một mùa thi hiệu quả, gói gọn trong một không gian duy nhất.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="sf-icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                    </span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">Trụ cột 1</span>
+                </div>
+                <h5 class="fw-bold mb-2">Quản lý Tài liệu &amp; Tóm tắt AI</h5>
+                <p class="text-muted small mb-3 flex-grow-1">
+                    Phân loại tài liệu PDF, DOCX, TXT theo từng môn học. Tự động trích xuất văn bản và nhờ Gemini AI tóm tắt trọng tâm rõ ràng theo từng mục.
+                </p>
+                <div class="small text-primary fw-medium">
+                    <i class="bi bi-check2-circle me-1"></i>Tiết kiệm đến 70% thời gian đọc giáo trình
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="sf-icon-box bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-patch-question-fill"></i>
+                    </span>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Trụ cột 2</span>
+                </div>
+                <h5 class="fw-bold mb-2">AI Quiz Hub</h5>
+                <p class="text-muted small mb-3 flex-grow-1">
+                    Sinh đề trắc nghiệm chuẩn từ chính tài liệu của bạn với 3 mức độ khó. Làm bài thi thử có đếm ngược, chấm điểm tức thì kèm giải thích chi tiết.
+                </p>
+                <div class="small text-success fw-medium">
+                    <i class="bi bi-check2-circle me-1"></i>Lưu lịch sử &amp; nhận xét AI cá nhân hóa
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="sf-icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-calendar2-week-fill"></i>
+                    </span>
+                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Trụ cột 3</span>
+                </div>
+                <h5 class="fw-bold mb-2">AI Study Planner</h5>
+                <p class="text-muted small mb-3 flex-grow-1">
+                    AI phân tích ngày thi, độ khó môn học và lịch sử điểm yếu để đề xuất thời khóa biểu ôn tập tối ưu ngay trên lịch tương tác FullCalendar.
+                </p>
+                <div class="small text-warning fw-medium">
+                    <i class="bi bi-check2-circle me-1"></i>Kéo thả linh hoạt &amp; theo dõi trạng thái
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="sf-icon-box bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-stopwatch-fill"></i>
+                    </span>
+                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill">Trụ cột 4</span>
+                </div>
+                <h5 class="fw-bold mb-2">Pomodoro Focus</h5>
+                <p class="text-muted small mb-3 flex-grow-1">
+                    Đồng hồ tập trung chuẩn 25/5 phút liên kết trực tiếp với từng buổi học hôm nay. Ghi nhận thời lượng học thực tế và tổng hợp trên Dashboard.
+                </p>
+                <div class="small text-info fw-medium">
+                    <i class="bi bi-check2-circle me-1"></i>Tự động cập nhật tiến độ sau mỗi phiên
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quy trình học tập + CTA -->
+    <div class="sf-card p-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <h5 class="fw-bold mb-2">Bắt đầu hành trình học tập khoa học chỉ trong 30 giây</h5>
+                <p class="text-muted small mb-0">
+                    Tạo môn học &rarr; Tải tài liệu &amp; tóm tắt AI &rarr; Luyện đề trắc nghiệm &rarr; Lập lịch ôn thi và tập trung cùng Pomodoro. Mọi dữ liệu được lưu riêng tư theo tài khoản của bạn.
+                </p>
+            </div>
+            <div class="col-lg-4 d-flex flex-wrap justify-content-lg-end gap-2">
+                <a asp-controller="Account" asp-action="Register" class="btn btn-sf-primary rounded-pill px-4">
+                    <i class="bi bi-person-plus-fill me-1"></i>Tạo tài khoản miễn phí
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary rounded-pill px-4">
+                    Đăng nhập
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- ==================== DASHBOARD SINH VIÊN (ĐÃ ĐĂNG NHẬP) ==================== -->
+    var vm = Model!;
+    var gioTuan = vm.TongPhutPomodoroTuanNay / 60;
+    var phutDuTuan = vm.TongPhutPomodoroTuanNay % 60;
+    var pomoWeekDisplay = gioTuan > 0 ? $"{gioTuan}g {phutDuTuan}p" : $"{vm.TongPhutPomodoroTuanNay} phút";
+
+    <!-- Hero chào mừng -->
+    <div class="sf-hero mb-4 shadow-sm">
+        <div class="row align-items-center g-3 position-relative" style="z-index: 1;">
+            <div class="col-lg-8">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1">
+                        <i class="bi bi-calendar3 me-1"></i>Hôm nay, @DateTime.Today.ToString("dd/MM/yyyy")
+                    </span>
+                    @if (vm.IsAdmin)
+                    {
+                        <a asp-controller="Admin" asp-action="Index" class="badge bg-warning text-dark text-decoration-none rounded-pill px-3 py-1">
+                            <i class="bi bi-shield-lock-fill me-1"></i>Mở Bảng quản trị Admin
+                        </a>
+                    }
+                </div>
+                <h2 class="fw-bold mb-2">Xin chào, @vm.HoTen!</h2>
+                <p class="text-white text-opacity-75 mb-0">
+                    @if (vm.BuoiHocHomNay.Count > 0)
+                    {
+                        <span>Bạn có <strong>@vm.BuoiHocHomNay.Count buổi học</strong> cần hoàn thành trong hôm nay. Bắt đầu ngay một phiên Pomodoro để giữ nhịp nhé!</span>
+                    }
+                    else
+                    {
+                        <span>Hôm nay bạn chưa có buổi học nào đang chờ. Bạn có thể tạo thêm lịch ôn thi AI hoặc luyện nhanh một đề trắc nghiệm.</span>
+                    }
+                </p>
+            </div>
+            <div class="col-lg-4 d-flex flex-wrap justify-content-lg-end gap-2">
+                <a asp-controller="Pomodoro" asp-action="Index" class="btn btn-light text-primary fw-semibold rounded-pill px-3">
+                    <i class="bi bi-stopwatch-fill me-1"></i>Vào Pomodoro
+                </a>
+                <a asp-controller="KeHoachHocTap" asp-action="Index" class="btn btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-calendar2-week me-1"></i>Lịch học AI
+                </a>
+                <a asp-controller="DeThi" asp-action="Index" class="btn btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-patch-question me-1"></i>AI Quiz Hub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5 Thẻ KPI tổng quan -->
+    <div class="row g-3 mb-4 row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-5">
+        <div class="col">
+            <a asp-controller="MonHoc" asp-action="Index" class="text-decoration-none text-reset d-block h-100">
+                <div class="sf-card sf-card-hover sf-kpi-card p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="sf-kpi-label">Môn học</span>
+                        <span class="sf-kpi-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                        </span>
+                    </div>
+                    <div class="sf-kpi-value">@vm.TongMonHoc</div>
+                    <div class="sf-kpi-sub text-muted">
+                        @(vm.MonSapThi.Count > 0 ? $"{vm.MonSapThi.Count} môn có lịch thi sắp tới" : "Quản lý môn & mục tiêu")
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a asp-controller="TaiLieu" asp-action="Index" class="text-decoration-none text-reset d-block h-100">
+                <div class="sf-card sf-card-hover sf-kpi-card p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="sf-kpi-label">Tài liệu</span>
+                        <span class="sf-kpi-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                        </span>
+                    </div>
+                    <div class="sf-kpi-value">@vm.TongTaiLieu</div>
+                    <div class="sf-kpi-sub text-muted">Giáo trình &amp; bản tóm tắt AI</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a asp-controller="DeThi" asp-action="LichSu" class="text-decoration-none text-reset d-block h-100">
+                <div class="sf-card sf-card-hover sf-kpi-card p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="sf-kpi-label">Điểm trung bình</span>
+                        <span class="sf-kpi-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-award-fill"></i>
+                        </span>
+                    </div>
+                    <div class="sf-kpi-value">
+                        @(vm.DiemTrungBinh.HasValue ? vm.DiemTrungBinh.Value.ToString("0.00") : "—")
+                        @if (vm.DiemTrungBinh.HasValue)
+                        {
+                            <span class="fs-6 fw-normal text-muted">/10</span>
+                        }
+                    </div>
+                    <div class="sf-kpi-sub text-muted">
+                        @(vm.SoLuotLamBai > 0 ? $"Từ {vm.SoLuotLamBai} lượt làm bài" : "Chưa có lượt làm bài nào")
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a asp-controller="Pomodoro" asp-action="Index" class="text-decoration-none text-reset d-block h-100">
+                <div class="sf-card sf-card-hover sf-kpi-card p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="sf-kpi-label">Pomodoro tuần này</span>
+                        <span class="sf-kpi-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="bi bi-stopwatch-fill"></i>
+                        </span>
+                    </div>
+                    <div class="sf-kpi-value">@pomoWeekDisplay</div>
+                    <div class="sf-kpi-sub text-muted">@vm.SoPhienPomodoroTuanNay phiên tập trung hoàn thành</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a asp-controller="KeHoachHocTap" asp-action="Index" class="text-decoration-none text-reset d-block h-100">
+                <div class="sf-card sf-card-hover sf-kpi-card p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="sf-kpi-label">Hoàn thành lịch học</span>
+                        <span class="sf-kpi-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-check2-square"></i>
+                        </span>
+                    </div>
+                    <div class="sf-kpi-value">@vm.TyLeHoanThanhKeHoach.ToString("0.#")%</div>
+                    <div class="sf-kpi-sub text-muted">
+                        @(vm.TongKeHoach > 0 ? $"{vm.KeHoachHoanThanh}/{vm.TongKeHoach} buổi đã xong" : "Chưa có lịch học nào")
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Góc nhắc nhở hôm nay + Môn sắp thi -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="sf-card p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-bell-fill text-primary me-2"></i>Nhắc nhở buổi học hôm nay
+                        </h5>
+                        <span class="text-muted small">Các buổi học chưa làm trong ngày @DateTime.Today.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <a asp-controller="KeHoachHocTap" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill">
+                        Xem lịch
+                    </a>
+                </div>
+
+                @if (vm.BuoiHocHomNay.Count == 0)
+                {
+                    <div class="sf-empty-state my-auto">
+                        <i class="bi bi-calendar-check text-primary"></i>
+                        <div class="fw-semibold mb-1">Không còn buổi học tồn đọng hôm nay</div>
+                        <p class="text-muted small mb-3">Bạn đã xử lý gọn lịch hôm nay hoặc chưa tạo lịch học mới.</p>
+                        <a asp-controller="KeHoachHocTap" asp-action="Index" class="btn btn-sm btn-sf-primary rounded-pill px-3">
+                            <i class="bi bi-magic me-1"></i>Lập lịch ôn thi với AI
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var buoi in vm.BuoiHocHomNay)
+                        {
+                            var gioStr = $"{buoi.GioBatDau:hh\\:mm}";
+                            <div class="sf-reminder-item">
+                                <div class="d-flex align-items-start gap-3 min-w-0">
+                                    <span class="sf-reminder-bar" style="background-color: @buoi.MaMau;"></span>
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold text-truncate">@buoi.TieuDe</div>
+                                        <div class="small text-muted d-flex flex-wrap align-items-center gap-2 mt-1">
+                                            <span class="badge rounded-pill" style="background-color: @buoi.MaMau; color: #fff;">@buoi.TenMonHoc</span>
+                                            <span><i class="bi bi-clock me-1"></i>@gioStr (@buoi.ThoiLuongPhut phút)</span>
+                                            @if (buoi.DoAITao)
+                                            {
+                                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">
+                                                    <i class="bi bi-stars me-1"></i>AI gợi ý
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <a asp-controller="Pomodoro" asp-action="Index" asp-route-maKeHoach="@buoi.MaKeHoach"
+                                   class="btn btn-sm btn-sf-primary rounded-pill flex-shrink-0">
+                                    <i class="bi bi-play-fill me-1"></i>Học Pomodoro
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="sf-card p-4 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-hourglass-split text-warning me-2"></i>Môn học sắp thi
+                        </h5>
+                        <span class="text-muted small">Đếm ngược tới ngày thi gần nhất</span>
+                    </div>
+                    <a asp-controller="MonHoc" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill">
+                        Môn học
+                    </a>
+                </div>
+
+                @if (vm.MonSapThi.Count == 0)
+                {
+                    <div class="sf-empty-state my-auto">
+                        <i class="bi bi-journal-plus text-warning"></i>
+                        <div class="fw-semibold mb-1">Chưa có môn học nào đặt ngày thi</div>
+                        <p class="text-muted small mb-3">Hãy cập nhật ngày thi cho các môn học để AI ưu tiên sắp lịch ôn tập chính xác hơn.</p>
+                        <a asp-controller="MonHoc" asp-action="Create" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm môn học
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var mon in vm.MonSapThi)
+                        {
+                            var countdownClass = mon.SoNgayConLai <= 3
+                                ? "bg-danger text-white"
+                                : (mon.SoNgayConLai <= 7 ? "bg-warning text-dark" : "bg-primary bg-opacity-10 text-primary");
+                            var countdownText = mon.SoNgayConLai == 0
+                                ? "Thi hôm nay"
+                                : $"Còn {mon.SoNgayConLai} ngày";
+
+                            <a asp-controller="MonHoc" asp-action="Details" asp-route-id="@mon.MaMonHoc"
+                               class="sf-exam-countdown-item text-decoration-none text-reset">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <span class="sf-color-dot flex-shrink-0" style="background-color: @mon.MaMau;"></span>
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold text-truncate">@mon.TenMonHoc</div>
+                                        <div class="small text-muted">
+                                            Ngày thi: @mon.NgayThi.ToString("dd/MM/yyyy")
+                                            @if (mon.DiemMucTieu.HasValue)
+                                            {
+                                                <span>&bull; Mục tiêu: @mon.DiemMucTieu.Value.ToString("0.#")đ</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="badge rounded-pill px-3 py-2 flex-shrink-0 @countdownClass">@countdownText</span>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 Biểu đồ Chart.js -->
+    <div class="row g-4">
+        <!-- Biểu đồ 1: Tiến bộ điểm số (Line Chart) -->
+        <div class="col-lg-8">
+            <div class="sf-card p-4 h-100">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-graph-up-arrow text-primary me-2"></i>Biểu đồ tiến bộ điểm số
+                        </h5>
+                        <span class="text-muted small">Theo dõi điểm số qua tối đa 10 lượt làm bài trắc nghiệm gần nhất (thang điểm 10)</span>
+                    </div>
+                    <a asp-controller="DeThi" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill">
+                        Luyện đề mới
+                    </a>
+                </div>
+
+                @if (vm.HasScoreData)
+                {
+                    <div class="sf-chart-box">
+                        <canvas id="scoreProgressChart"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="sf-empty-state py-5">
+                        <i class="bi bi-clipboard-data text-primary"></i>
+                        <div class="fw-semibold mb-1">Chưa có dữ liệu điểm số</div>
+                        <p class="text-muted small mb-3">Hoàn thành ít nhất 1 bài thi trắc nghiệm trong AI Quiz Hub để biểu đồ tiến bộ bắt đầu hiển thị.</p>
+                        <a asp-controller="DeThi" asp-action="Index" class="btn btn-sm btn-sf-primary rounded-pill px-3">
+                            <i class="bi bi-patch-question-fill me-1"></i>Tới AI Quiz Hub
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Biểu đồ 3: Trạng thái kế hoạch học tập (Doughnut Chart) -->
+        <div class="col-lg-4">
+            <div class="sf-card p-4 h-100 d-flex flex-column">
+                <div class="mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-pie-chart-fill text-success me-2"></i>Trạng thái lịch học
+                    </h5>
+                    <span class="text-muted small">Phân bổ @vm.TongKeHoach buổi học đã lên kế hoạch</span>
+                </div>
+
+                @if (vm.HasPlanData)
+                {
+                    <div class="sf-chart-box sf-chart-box-sm flex-grow-1">
+                        <canvas id="planStatusChart"></canvas>
+                    </div>
+                    <div class="row g-2 text-center mt-3 pt-2 border-top small">
+                        <div class="col-4">
+                            <div class="fw-bold text-success">@vm.KeHoachHoanThanh</div>
+                            <div class="text-muted">Hoàn thành</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-primary">@vm.KeHoachChuaLam</div>
+                            <div class="text-muted">Chưa làm</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-danger">@vm.KeHoachBoLo</div>
+                            <div class="text-muted">Bỏ lỡ</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="sf-empty-state my-auto py-4">
+                        <i class="bi bi-calendar-plus text-success"></i>
+                        <div class="fw-semibold mb-1">Chưa có kế hoạch học tập</div>
+                        <p class="text-muted small mb-3">Tạo buổi học thủ công hoặc dùng AI lập lịch để theo dõi tỷ lệ hoàn thành.</p>
+                        <a asp-controller="KeHoachHocTap" asp-action="Index" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                            Tạo lịch học
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Biểu đồ 2: Thời gian tập trung Pomodoro 7 ngày gần nhất (Bar Chart) -->
+        <div class="col-12">
+            <div class="sf-card p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-bar-chart-fill text-danger me-2"></i>Thời gian tập trung Pomodoro 7 ngày gần nhất
+                        </h5>
+                        <span class="text-muted small">
+                            Tổng 7 ngày gần nhất: <strong>@vm.TongPhutPomodoro7Ngay phút</strong> tập trung
+                        </span>
+                    </div>
+                    <a asp-controller="Pomodoro" asp-action="Index" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="bi bi-stopwatch me-1"></i>Bắt đầu phiên mới
+                    </a>
+                </div>
+
+                @if (vm.HasPomodoroData)
+                {
+                    <div class="sf-chart-box">
+                        <canvas id="pomodoro7DaysChart"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="sf-empty-state py-4">
+                        <i class="bi bi-stopwatch text-danger"></i>
+                        <div class="fw-semibold mb-1">Chưa ghi nhận phiên Pomodoro nào trong 7 ngày qua</div>
+                        <p class="text-muted small mb-3">Hoàn thành một phiên tập trung trong Pomodoro Focus để theo dõi thói quen học tập mỗi ngày.</p>
+                        <a asp-controller="Pomodoro" asp-action="Index" class="btn btn-sm btn-sf-primary rounded-pill px-3">
+                            <i class="bi bi-play-circle me-1"></i>Mở đồng hồ Pomodoro
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script type="application/json" id="sfDashboardChartData">@Html.Raw(vm.ChartDataJson)</script>
+}
+
+@section Scripts {
+    @if (isAuthenticated && Model is not null && (Model.HasScoreData || Model.HasPomodoroData || Model.HasPlanData))
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+        <script>
+            (function () {
+                const dataEl = document.getElementById('sfDashboardChartData');
+                if (!dataEl || typeof Chart === 'undefined') return;
+
+                let payload;
+                try {
+                    payload = JSON.parse(dataEl.textContent || '{}');
+                } catch {
+                    return;
+                }
+
+                Chart.defaults.font.family = "'Be Vietnam Pro', system-ui, -apple-system, sans-serif";
+                Chart.defaults.color = '#64748b';
+
+                // 1. Line Chart: Tiến bộ điểm số
+                const scoreCanvas = document.getElementById('scoreProgressChart');
+                if (scoreCanvas && Array.isArray(payload.scoreValues) && payload.scoreValues.length > 0) {
+                    const ctx = scoreCanvas.getContext('2d');
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+                    gradient.addColorStop(0, 'rgba(79, 70, 229, 0.28)');
+                    gradient.addColorStop(1, 'rgba(79, 70, 229, 0.01)');
+
+                    new Chart(scoreCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: payload.scoreLabels || [],
+                            datasets: [{
+                                label: 'Điểm số',
+                                data: payload.scoreValues,
+                                borderColor: '#4f46e5',
+                                backgroundColor: gradient,
+                                borderWidth: 3,
+                                pointRadius: 5,
+                                pointHoverRadius: 7,
+                                pointBackgroundColor: '#ffffff',
+                                pointBorderColor: '#4f46e5',
+                                pointBorderWidth: 2.5,
+                                fill: true,
+                                tension: 0.32
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    min: 0,
+                                    max: 10,
+                                    ticks: { stepSize: 2 },
+                                    grid: { color: '#f1f5f9' }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { maxRotation: 25, autoSkip: false }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#0f172a',
+                                    padding: 12,
+                                    cornerRadius: 10,
+                                    callbacks: {
+                                        title: (items) => {
+                                            const idx = items[0]?.dataIndex ?? 0;
+                                            return (payload.scoreTooltips && payload.scoreTooltips[idx]) || items[0]?.label || '';
+                                        },
+                                        label: (item) => ` Điểm đạt được: ${item.parsed.y} / 10`
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 2. Bar Chart: Thời gian tập trung Pomodoro 7 ngày gần nhất
+                const pomoCanvas = document.getElementById('pomodoro7DaysChart');
+                if (pomoCanvas && Array.isArray(payload.pomodoroMinutes) && payload.pomodoroMinutes.length > 0) {
+                    new Chart(pomoCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: payload.pomodoroLabels || [],
+                            datasets: [{
+                                label: 'Số phút tập trung',
+                                data: payload.pomodoroMinutes,
+                                backgroundColor: payload.pomodoroMinutes.map((v, idx) =>
+                                    idx === payload.pomodoroMinutes.length - 1 ? '#4f46e5' : 'rgba(14, 165, 233, 0.75)'
+                                ),
+                                hoverBackgroundColor: '#4338ca',
+                                borderRadius: 10,
+                                maxBarThickness: 48
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        precision: 0,
+                                        callback: (val) => `${val}p`
+                                    },
+                                    grid: { color: '#f1f5f9' }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#0f172a',
+                                    padding: 12,
+                                    cornerRadius: 10,
+                                    callbacks: {
+                                        label: (item) => {
+                                            const sessions = (payload.pomodoroSessions && payload.pomodoroSessions[item.dataIndex]) || 0;
+                                            return ` ${item.parsed.y} phút (${sessions} phiên Pomodoro)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 3. Doughnut Chart: Trạng thái kế hoạch học tập
+                const planCanvas = document.getElementById('planStatusChart');
+                if (planCanvas && Array.isArray(payload.planValues)) {
+                    const totalPlan = payload.planValues.reduce((sum, v) => sum + v, 0);
+                    if (totalPlan > 0) {
+                        new Chart(planCanvas, {
+                            type: 'doughnut',
+                            data: {
+                                labels: payload.planLabels || ['Hoàn thành', 'Chưa làm', 'Bỏ lỡ'],
+                                datasets: [{
+                                    data: payload.planValues,
+                                    backgroundColor: ['#10b981', '#4f46e5', '#ef4444'],
+                                    borderWidth: 3,
+                                    borderColor: '#ffffff',
+                                    hoverOffset: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '66%',
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            usePointStyle: true,
+                                            padding: 14
+                                        }
+                                    },
+                                    tooltip: {
+                                        backgroundColor: '#0f172a',
+                                        padding: 12,
+                                        cornerRadius: 10,
+                                        callbacks: {
+                                            label: (item) => {
+                                                const pct = ((item.parsed * 100) / totalPlan).toFixed(1);
+                                                return ` ${item.label}: ${item.parsed} buổi (${pct}%)`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            })();
+        </script>
+    }
+}

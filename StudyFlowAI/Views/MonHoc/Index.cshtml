@@ -1,0 +1,136 @@
+@model List<MonHocCardViewModel>
+@{
+    ViewData["Title"] = "Quản lý Môn học";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold mb-1">Môn học của bạn</h2>
+        <p class="text-muted mb-0 small">Theo dõi lịch thi, điểm mục tiêu, tài liệu và đề ôn tập theo từng môn học.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-action="ScanTkb" class="btn btn-outline-success rounded-pill px-3 fw-medium">
+            <i class="bi bi-camera-fill me-1"></i>Scan ảnh TKB
+        </a>
+        <a asp-controller="TaiLieu" asp-action="Upload" class="btn btn-outline-primary rounded-pill px-3">
+            <i class="bi bi-cloud-arrow-up me-1"></i>Tải tài liệu
+        </a>
+        <a asp-action="Create" class="btn btn-sf-primary rounded-pill px-3">
+            <i class="bi bi-plus-lg me-1"></i>Thêm môn học
+        </a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="sf-card p-5 text-center">
+        <div class="sf-icon-box bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+            <i class="bi bi-journal-bookmark-fill"></i>
+        </div>
+        <h3 class="h5 fw-bold mb-2">Chưa có môn học nào</h3>
+        <p class="text-muted mb-4">Bắt đầu bằng việc tạo môn học thủ công hoặc quét ảnh Thời khóa biểu để Gemini AI tự động tạo danh sách môn học cho bạn.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <a asp-action="ScanTkb" class="btn btn-outline-success rounded-pill px-4 fw-medium">
+                <i class="bi bi-camera-fill me-1"></i>Scan ảnh TKB bằng AI
+            </a>
+            <a asp-action="Create" class="btn btn-sf-primary rounded-pill px-4">
+                <i class="bi bi-plus-lg me-1"></i>Tạo môn học đầu tiên
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var item in Model)
+        {
+            var badgeCountdownClass = item.SoNgayConLai switch
+            {
+                null => "bg-secondary bg-opacity-10 text-secondary",
+                < 0 => "bg-dark bg-opacity-10 text-dark",
+                <= 7 => "bg-danger bg-opacity-10 text-danger",
+                <= 21 => "bg-warning bg-opacity-15 text-dark",
+                _ => "bg-success bg-opacity-10 text-success"
+            };
+
+            var countdownText = item.SoNgayConLai switch
+            {
+                null => "Chưa đặt ngày thi",
+                < 0 => $"Đã qua {-item.SoNgayConLai.Value} ngày",
+                0 => "Thi hôm nay!",
+                _ => $"Còn {item.SoNgayConLai.Value} ngày"
+            };
+
+            var doKhoBadgeClass = item.DoKho switch
+            {
+                1 => "bg-success bg-opacity-10 text-success",
+                3 => "bg-danger bg-opacity-10 text-danger",
+                _ => "bg-primary bg-opacity-10 text-primary"
+            };
+
+            <div class="col-md-6 col-xl-4">
+                <div class="sf-card sf-card-hover sf-subject-card position-relative h-100 d-flex flex-column overflow-hidden">
+                    <div class="sf-subject-accent" style="background-color: @item.MaMau;"></div>
+                    <div class="p-4 d-flex flex-column flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                            <div class="d-flex align-items-center gap-2 min-w-0">
+                                <span class="sf-color-dot flex-shrink-0" style="background-color: @item.MaMau;"></span>
+                                <h3 class="h6 fw-bold mb-0 text-truncate" title="@item.TenMonHoc">
+                                    <a asp-action="Details" asp-route-id="@item.MaMonHoc" class="text-decoration-none text-dark stretched-link">
+                                        @item.TenMonHoc
+                                    </a>
+                                </h3>
+                            </div>
+                            <span class="badge rounded-pill @doKhoBadgeClass flex-shrink-0">@item.DoKhoText</span>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="badge rounded-pill @badgeCountdownClass px-2 py-1">
+                                <i class="bi bi-hourglass-split me-1"></i>@countdownText
+                            </span>
+                            @if (item.NgayThi.HasValue)
+                            {
+                                <span class="badge rounded-pill bg-light text-secondary border px-2 py-1">
+                                    <i class="bi bi-calendar-event me-1"></i>@item.NgayThi.Value.ToString("dd/MM/yyyy")
+                                </span>
+                            }
+                        </div>
+
+                        <div class="row g-2 text-center bg-light rounded-3 p-2 mb-3 mt-auto">
+                            <div class="col-4">
+                                <div class="fw-bold text-dark">@(item.DiemMucTieu.HasValue ? $"{item.DiemMucTieu:0.#}" : "—")</div>
+                                <div class="text-muted" style="font-size: 0.72rem;">Mục tiêu</div>
+                            </div>
+                            <div class="col-4 border-start border-end">
+                                <div class="fw-bold text-dark">@item.SoTaiLieu</div>
+                                <div class="text-muted" style="font-size: 0.72rem;">Tài liệu</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="fw-bold text-dark">@item.SoDeThi</div>
+                                <div class="text-muted" style="font-size: 0.72rem;">Đề AI</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top position-relative" style="z-index: 2;">
+                            <a asp-action="Details" asp-route-id="@item.MaMonHoc" class="btn btn-sm btn-light rounded-pill px-3 fw-medium">
+                                Xem chi tiết
+                            </a>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit" asp-route-id="@item.MaMonHoc" class="btn btn-sm btn-outline-secondary rounded-circle" title="Chỉnh sửa">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@item.MaMonHoc" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa môn học &quot;@item.TenMonHoc&quot; sẽ xóa toàn bộ tài liệu và đề thi liên quan. Bạn chắc chắn muốn xóa?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Xóa môn học">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

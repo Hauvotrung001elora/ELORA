@@ -1,0 +1,191 @@
+@model LamBaiViewModel
+@{
+    ViewData["Title"] = "Làm bài thi";
+    var doKhoText = Model.DeThi.DoKho switch
+    {
+        "De" => "Dễ",
+        "Kho" => "Khó",
+        _ => "Trung bình"
+    };
+}
+
+<form asp-action="NopBai" method="post" id="examForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="MaDeThi" value="@Model.DeThi.MaDeThi" />
+    <input type="hidden" name="ThoiGianBatDau" value="@Model.ThoiGianBatDau.ToString("O")" />
+
+    <!-- Thanh trạng thái cố định khi cuộn -->
+    <div class="sf-exam-header sf-card p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="min-w-0">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                @if (Model.DeThi.TaiLieu?.MonHoc != null)
+                {
+                    <span class="badge rounded-pill text-white" style="background-color: @Model.DeThi.TaiLieu.MonHoc.MaMau;">
+                        @Model.DeThi.TaiLieu.MonHoc.TenMonHoc
+                    </span>
+                }
+                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">@doKhoText</span>
+            </div>
+            <h2 class="h5 fw-bold mb-0 text-truncate">@Model.DeThi.TieuDe</h2>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-end">
+                <div class="text-muted" style="font-size: 0.72rem;">Đã trả lời</div>
+                <div class="fw-bold small"><span id="answeredCount">0</span> / @Model.CauHois.Count câu</div>
+            </div>
+            <div class="sf-timer-box" id="timerBox">
+                <i class="bi bi-stopwatch-fill me-1"></i>
+                <span id="countdownDisplay">@Model.DeThi.ThoiGianLamPhut.ToString("00"):00</span>
+            </div>
+            <button type="button" class="btn btn-sf-primary rounded-pill px-4" id="btnSubmitManual">
+                <i class="bi bi-send-check me-1"></i>Nộp bài
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Danh sách câu hỏi -->
+        <div class="col-lg-9">
+            <div class="d-flex flex-column gap-4">
+                @for (int i = 0; i < Model.CauHois.Count; i++)
+                {
+                    var ch = Model.CauHois[i];
+                    var options = new (string Key, string Value)[]
+                    {
+                        ("A", ch.DapAnA),
+                        ("B", ch.DapAnB),
+                        ("C", ch.DapAnC),
+                        ("D", ch.DapAnD)
+                    };
+
+                    <div class="sf-card p-4" id="question-@i">
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <span class="badge bg-primary rounded-pill px-3 py-2 flex-shrink-0">Câu @(i + 1)</span>
+                            <div class="fw-semibold fs-6 lh-base">@ch.NoiDung</div>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var opt in options)
+                            {
+                                var inputId = $"q_{ch.MaCauHoi}_{opt.Key}";
+                                <label class="sf-option-card" for="@inputId">
+                                    <input class="form-check-input sf-answer-radio me-2"
+                                           type="radio"
+                                           name="TraLois[@ch.MaCauHoi]"
+                                           id="@inputId"
+                                           value="@opt.Key"
+                                           data-q-index="@i" />
+                                    <span class="sf-option-letter">@opt.Key</span>
+                                    <span class="flex-grow-1">@opt.Value</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Bảng điều hướng câu hỏi -->
+        <div class="col-lg-3">
+            <div class="sf-card p-3 sticky-top" style="top: 155px;">
+                <h3 class="h6 fw-bold mb-3">Danh sách câu hỏi</h3>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @for (int i = 0; i < Model.CauHois.Count; i++)
+                    {
+                        <a href="#question-@i" class="sf-q-pill" id="pill-@i">@(i + 1)</a>
+                    }
+                </div>
+                <div class="small text-muted border-top pt-2">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="sf-q-pill answered" style="width: 18px; height: 18px; font-size: 0.65rem;"></span>
+                        <span>Đã chọn đáp án</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="sf-q-pill" style="width: 18px; height: 18px; font-size: 0.65rem;"></span>
+                        <span>Chưa trả lời</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const totalSecondsInit = @Model.DeThi.ThoiGianLamPhut * 60;
+            const totalQuestions = @Model.CauHois.Count;
+            let remainingSeconds = totalSecondsInit;
+            let isSubmitting = false;
+
+            const examForm = document.getElementById('examForm');
+            const countdownEl = document.getElementById('countdownDisplay');
+            const timerBox = document.getElementById('timerBox');
+            const answeredCountEl = document.getElementById('answeredCount');
+            const btnSubmitManual = document.getElementById('btnSubmitManual');
+            const answeredSet = new Set();
+
+            document.querySelectorAll('.sf-answer-radio').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    const qIndex = this.dataset.qIndex;
+                    answeredSet.add(qIndex);
+                    answeredCountEl.textContent = answeredSet.size;
+                    const pill = document.getElementById('pill-' + qIndex);
+                    if (pill) pill.classList.add('answered');
+                });
+            });
+
+            function formatTime(sec) {
+                const m = Math.floor(sec / 60);
+                const s = sec % 60;
+                return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            }
+
+            function submitExam(autoSubmitted) {
+                if (isSubmitting) return;
+                isSubmitting = true;
+                btnSubmitManual.disabled = true;
+                btnSubmitManual.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' +
+                    (autoSubmitted ? 'Hết giờ, đang chấm bài...' : 'Đang chấm bài...');
+                examForm.submit();
+            }
+
+            btnSubmitManual.addEventListener('click', function () {
+                const unanswered = totalQuestions - answeredSet.size;
+                const msg = unanswered > 0
+                    ? `Bạn còn ${unanswered} câu chưa trả lời. Bạn có chắc chắn muốn nộp bài ngay bây giờ?`
+                    : 'Bạn đã trả lời tất cả câu hỏi. Xác nhận nộp bài để chấm điểm?';
+                if (confirm(msg)) {
+                    submitExam(false);
+                }
+            });
+
+            countdownEl.textContent = formatTime(remainingSeconds);
+            const intervalId = setInterval(function () {
+                remainingSeconds--;
+                if (remainingSeconds <= 0) {
+                    clearInterval(intervalId);
+                    countdownEl.textContent = '00:00';
+                    timerBox.classList.add('sf-timer-danger');
+                    submitExam(true);
+                    return;
+                }
+
+                countdownEl.textContent = formatTime(remainingSeconds);
+                if (remainingSeconds <= 60) {
+                    timerBox.classList.add('sf-timer-danger');
+                } else if (remainingSeconds <= 180) {
+                    timerBox.classList.add('sf-timer-warning');
+                }
+            }, 1000);
+
+            window.addEventListener('beforeunload', function (e) {
+                if (!isSubmitting) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+        })();
+    </script>
+}

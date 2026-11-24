@@ -1,0 +1,362 @@
+@model PomodoroIndexViewModel
+@{
+    ViewData["Title"] = "Đồng hồ Pomodoro";
+}
+
+<form id="pomodoroTokenForm" class="d-none">@Html.AntiForgeryToken()</form>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold mb-1">Pomodoro Focus Timer</h2>
+        <p class="text-muted small mb-0">Tập trung học sâu theo phiên, tự động ghi nhận thời gian học và đồng bộ hoàn thành buổi học trong lịch.</p>
+    </div>
+    <a asp-controller="KeHoachHocTap" asp-action="Index" class="btn btn-outline-primary rounded-pill px-3">
+        <i class="bi bi-calendar2-week me-1"></i>Xem Lịch học AI
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Cột trái: Đồng hồ Pomodoro -->
+    <div class="col-lg-7">
+        <div class="sf-card p-4 p-md-5 text-center">
+            <!-- Chọn chế độ Học / Nghỉ ngắn -->
+            <div class="d-inline-flex bg-light p-1 rounded-pill mb-4 border">
+                <button type="button" class="btn btn-sm rounded-pill px-4 fw-semibold sf-mode-btn active" id="btnModeStudy" onclick="switchMode('study')">
+                    <i class="bi bi-book-half me-1"></i>Tập trung học
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill px-4 fw-semibold sf-mode-btn" id="btnModeBreak" onclick="switchMode('break')">
+                    <i class="bi bi-cup-hot me-1"></i>Nghỉ ngắn (5 phút)
+                </button>
+            </div>
+
+            <!-- Chọn thời lượng nhanh -->
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4" id="studyDurationPresets">
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 sf-preset-btn active" data-minutes="25" onclick="selectDuration(25, this)">25 phút</button>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 sf-preset-btn" data-minutes="45" onclick="selectDuration(45, this)">45 phút</button>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 sf-preset-btn" data-minutes="60" onclick="selectDuration(60, this)">60 phút</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 sf-preset-btn" data-minutes="1" onclick="selectDuration(1, this)" title="Dùng để demo/test nhanh">1 phút (Demo)</button>
+            </div>
+
+            <!-- Vòng tròn tiến độ SVG -->
+            <div class="sf-pomo-ring-wrapper mx-auto mb-4">
+                <svg class="sf-pomo-svg" viewBox="0 0 240 240">
+                    <circle class="sf-pomo-track" cx="120" cy="120" r="106" />
+                    <circle class="sf-pomo-progress" id="pomoProgressCircle" cx="120" cy="120" r="106" />
+                </svg>
+                <div class="sf-pomo-center">
+                    <div class="sf-pomo-time" id="pomoTimeDisplay">25:00</div>
+                    <div class="text-muted small fw-medium" id="pomoStatusText">Sẵn sàng tập trung</div>
+                </div>
+            </div>
+
+            <!-- Nút điều khiển -->
+            <div class="d-flex justify-content-center gap-2 mb-4">
+                <button type="button" class="btn btn-sf-primary btn-lg rounded-pill px-5" id="btnStartPause" onclick="toggleTimer()">
+                    <i class="bi bi-play-fill me-1"></i>Bắt đầu
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill px-4" onclick="resetTimer()">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Đặt lại
+                </button>
+            </div>
+
+            <!-- Gắn buổi học -->
+            <div class="bg-light rounded-4 p-3 text-start">
+                <label class="form-label fw-semibold small mb-2">
+                    <i class="bi bi-link-45deg me-1 text-primary"></i>Gắn với buổi học trong kế hoạch (tuỳ chọn)
+                </label>
+                <select id="selectMaKeHoach" class="form-select mb-2">
+                    <option value="">-- Học tự do (không gắn buổi học cụ thể) --</option>
+                    @foreach (var kh in Model.BuoiHocChuaLam)
+                    {
+                        var isSelected = Model.SelectedMaKeHoach == kh.MaKeHoach;
+                        <option value="@kh.MaKeHoach" selected="@isSelected">
+                            [@kh.MonHoc?.TenMonHoc] @kh.TieuDe (@kh.NgayHoc.ToString("dd/MM") • @kh.GioBatDau.ToString(@"hh\:mm"))
+                        </option>
+                    }
+                </select>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkDanhDauHoanThanh" checked />
+                    <label class="form-check-label small text-muted" for="chkDanhDauHoanThanh">
+                        Tự động đánh dấu buổi học đã chọn là <strong>Hoàn thành</strong> khi kết thúc phiên
+                    </label>
+                </div>
+            </div>
+
+            <div id="pomoSaveAlert" class="alert alert-success rounded-3 small mt-3 mb-0 d-none"></div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Thống kê & Lịch sử phiên -->
+    <div class="col-lg-5">
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <div class="sf-card p-3 h-100">
+                    <div class="text-muted small mb-1"><i class="bi bi-sun me-1 text-warning"></i>Hôm nay</div>
+                    <div class="h3 fw-bold mb-0"><span id="statPhutHomNay">@Model.TongPhutHomNay</span> <span class="fs-6 fw-normal text-muted">phút</span></div>
+                    <div class="small text-muted"><span id="statPhienHomNay">@Model.SoPhienHomNay</span> phiên hoàn thành</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="sf-card p-3 h-100">
+                    <div class="text-muted small mb-1"><i class="bi bi-calendar-week me-1 text-primary"></i>Tuần này</div>
+                    <div class="h3 fw-bold mb-0"><span id="statPhutTuanNay">@Model.TongPhutTuanNay</span> <span class="fs-6 fw-normal text-muted">phút</span></div>
+                    <div class="small text-muted"><span id="statPhienTuanNay">@Model.SoPhienTuanNay</span> phiên hoàn thành</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sf-card p-4">
+            <h3 class="h6 fw-bold mb-3">
+                <i class="bi bi-clock-history me-2 text-primary"></i>Các phiên tập trung gần đây
+            </h3>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0" id="pomoHistoryTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Buổi học</th>
+                            <th class="text-center">Phút</th>
+                            <th class="text-end">Hoàn thành</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pomoHistoryBody">
+                        @if (!Model.LichSuGanDay.Any())
+                        {
+                            <tr id="emptyHistoryRow">
+                                <td colspan="3" class="text-center text-muted small py-4">Chưa có phiên Pomodoro nào được ghi nhận.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var p in Model.LichSuGanDay)
+                            {
+                                <tr>
+                                    <td class="small">
+                                        @if (p.KeHoachHocTap != null)
+                                        {
+                                            <div class="fw-semibold text-truncate" style="max-width: 190px;" title="@p.KeHoachHocTap.TieuDe">@p.KeHoachHocTap.TieuDe</div>
+                                            <div class="text-muted" style="font-size: 0.72rem;">@p.KeHoachHocTap.MonHoc?.TenMonHoc</div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Học tự do</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary">@p.ThoiLuongPhut p</span>
+                                    </td>
+                                    <td class="text-end text-muted small">@p.ThoiDiemHoanThanh.ToString("dd/MM HH:mm")</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const radius = 106;
+            const circumference = 2 * Math.PI * radius;
+            const progressCircle = document.getElementById('pomoProgressCircle');
+            progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            progressCircle.style.strokeDashoffset = '0';
+
+            let mode = 'study'; // 'study' | 'break'
+            let studyMinutes = 25;
+            let totalSeconds = studyMinutes * 60;
+            let remainingSeconds = totalSeconds;
+            let timerId = null;
+            let isRunning = false;
+
+            const timeDisplay = document.getElementById('pomoTimeDisplay');
+            const statusText = document.getElementById('pomoStatusText');
+            const btnStartPause = document.getElementById('btnStartPause');
+            const saveAlert = document.getElementById('pomoSaveAlert');
+
+            function updateDisplay() {
+                const m = Math.floor(remainingSeconds / 60);
+                const s = remainingSeconds % 60;
+                const formatted = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                timeDisplay.textContent = formatted;
+                document.title = isRunning ? `(${formatted}) Pomodoro - StudyFlow AI` : 'Đồng hồ Pomodoro - StudyFlow AI';
+
+                const progress = totalSeconds > 0 ? (remainingSeconds / totalSeconds) : 0;
+                const offset = circumference * (1 - progress);
+                progressCircle.style.strokeDashoffset = String(offset);
+            }
+
+            function playChime() {
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
+                    const ctx = new AudioCtx();
+                    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+                    notes.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.18);
+                        gain.gain.setValueAtTime(0.18, ctx.currentTime + idx * 0.18);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.18 + 0.45);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(ctx.currentTime + idx * 0.18);
+                        osc.stop(ctx.currentTime + idx * 0.18 + 0.48);
+                    });
+                } catch (e) {
+                    // Bỏ qua nếu trình duyệt chặn autoplay audio
+                }
+            }
+
+            async function saveCompletedSession() {
+                const token = document.querySelector('#pomodoroTokenForm input[name="__RequestVerificationToken"]')?.value;
+                const maKeHoachVal = document.getElementById('selectMaKeHoach').value;
+                const danhDauHoanThanh = document.getElementById('chkDanhDauHoanThanh').checked;
+
+                const payload = {
+                    maKeHoach: maKeHoachVal ? parseInt(maKeHoachVal, 10) : null,
+                    thoiLuongPhut: studyMinutes,
+                    danhDauHoanThanh: danhDauHoanThanh
+                };
+
+                try {
+                    const resp = await fetch('@Url.Action("LuuPhien", "Pomodoro")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token || ''
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await resp.json();
+                    if (resp.ok && data.success) {
+                        document.getElementById('statPhienHomNay').textContent = data.soPhienHomNay;
+                        document.getElementById('statPhutHomNay').textContent = data.tongPhutHomNay;
+                        document.getElementById('statPhienTuanNay').textContent = data.soPhienTuanNay;
+                        document.getElementById('statPhutTuanNay').textContent = data.tongPhutTuanNay;
+
+                        const tbody = document.getElementById('pomoHistoryBody');
+                        document.getElementById('emptyHistoryRow')?.remove();
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="small">
+                                <div class="fw-semibold text-truncate" style="max-width: 190px;">${escapeHtml(data.session.tieuDeBuoiHoc)}</div>
+                                ${data.session.tenMonHoc ? `<div class="text-muted" style="font-size: 0.72rem;">${escapeHtml(data.session.tenMonHoc)}</div>` : ''}
+                            </td>
+                            <td class="text-center"><span class="badge rounded-pill bg-primary bg-opacity-10 text-primary">${data.session.thoiLuongPhut} p</span></td>
+                            <td class="text-end text-muted small">${escapeHtml(data.session.thoiDiem.substring(0, 5))} ${escapeHtml(data.session.thoiDiem.substring(11))}</td>
+                        `;
+                        tbody.prepend(tr);
+
+                        if (data.markedCompleted && maKeHoachVal) {
+                            const sel = document.getElementById('selectMaKeHoach');
+                            sel.querySelector(`option[value="${maKeHoachVal}"]`)?.remove();
+                            sel.value = '';
+                        }
+
+                        saveAlert.classList.remove('d-none', 'alert-danger');
+                        saveAlert.classList.add('alert-success');
+                        saveAlert.textContent = data.markedCompleted
+                            ? `Tuyệt vời! Đã lưu phiên học ${studyMinutes} phút và đánh dấu hoàn thành buổi học.`
+                            : `Tuyệt vời! Đã tự động lưu phiên học ${studyMinutes} phút vào hệ thống.`;
+                    }
+                } catch (err) {
+                    saveAlert.classList.remove('d-none', 'alert-success');
+                    saveAlert.classList.add('alert-danger');
+                    saveAlert.textContent = 'Không thể lưu phiên học lên máy chủ. Vui lòng kiểm tra kết nối.';
+                }
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str || '';
+                return div.innerHTML;
+            }
+
+            window.switchMode = function (newMode) {
+                stopTimer();
+                mode = newMode;
+                document.getElementById('btnModeStudy').classList.toggle('active', mode === 'study');
+                document.getElementById('btnModeBreak').classList.toggle('active', mode === 'break');
+                document.getElementById('studyDurationPresets').classList.toggle('d-none', mode !== 'study');
+                progressCircle.classList.toggle('sf-pomo-break', mode === 'break');
+
+                totalSeconds = (mode === 'study' ? studyMinutes : 5) * 60;
+                remainingSeconds = totalSeconds;
+                statusText.textContent = mode === 'study' ? 'Sẵn sàng tập trung' : 'Sẵn sàng nghỉ ngắn 5 phút';
+                updateDisplay();
+            };
+
+            window.selectDuration = function (minutes, btnEl) {
+                stopTimer();
+                studyMinutes = minutes;
+                document.querySelectorAll('.sf-preset-btn').forEach(b => b.classList.remove('active'));
+                btnEl?.classList.add('active');
+                if (mode === 'study') {
+                    totalSeconds = studyMinutes * 60;
+                    remainingSeconds = totalSeconds;
+                    statusText.textContent = 'Sẵn sàng tập trung';
+                    updateDisplay();
+                }
+            };
+
+            function stopTimer() {
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+                isRunning = false;
+                btnStartPause.innerHTML = '<i class="bi bi-play-fill me-1"></i>Bắt đầu';
+            }
+
+            window.resetTimer = function () {
+                stopTimer();
+                saveAlert.classList.add('d-none');
+                totalSeconds = (mode === 'study' ? studyMinutes : 5) * 60;
+                remainingSeconds = totalSeconds;
+                statusText.textContent = mode === 'study' ? 'Sẵn sàng tập trung' : 'Sẵn sàng nghỉ ngắn 5 phút';
+                updateDisplay();
+            };
+
+            window.toggleTimer = function () {
+                saveAlert.classList.add('d-none');
+                if (isRunning) {
+                    stopTimer();
+                    statusText.textContent = 'Đang tạm dừng';
+                    btnStartPause.innerHTML = '<i class="bi bi-play-fill me-1"></i>Tiếp tục';
+                    return;
+                }
+
+                if (remainingSeconds <= 0) {
+                    remainingSeconds = totalSeconds;
+                }
+
+                isRunning = true;
+                statusText.textContent = mode === 'study' ? 'Đang tập trung học...' : 'Đang nghỉ giải lao...';
+                btnStartPause.innerHTML = '<i class="bi bi-pause-fill me-1"></i>Tạm dừng';
+
+                timerId = setInterval(async function () {
+                    remainingSeconds--;
+                    updateDisplay();
+
+                    if (remainingSeconds <= 0) {
+                        stopTimer();
+                        playChime();
+                        if (mode === 'study') {
+                            statusText.textContent = 'Hoàn thành phiên học!';
+                            await saveCompletedSession();
+                        } else {
+                            statusText.textContent = 'Hết giờ nghỉ! Sẵn sàng quay lại học.';
+                        }
+                    }
+                }, 1000);
+            };
+
+            updateDisplay();
+        })();
+    </script>
+}

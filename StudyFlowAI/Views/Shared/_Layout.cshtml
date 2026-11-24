@@ -1,0 +1,278 @@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<NguoiDung> UserManager
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    NguoiDung? currentUser = null;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        currentUser = await UserManager.GetUserAsync(User);
+    }
+
+    var displayName = !string.IsNullOrWhiteSpace(currentUser?.HoTen)
+        ? currentUser.HoTen
+        : (User.Identity?.Name ?? "Khách");
+
+    var initials = string.Join("", displayName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .TakeLast(2)
+        .Select(w => char.ToUpperInvariant(w[0])));
+    if (string.IsNullOrEmpty(initials))
+    {
+        initials = "SF";
+    }
+
+    var isAdmin = User.IsInRole(DbSeeder.RoleAdmin);
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - StudyFlow AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="sf-shell">
+        <!-- Desktop Sidebar -->
+        <aside class="sf-sidebar d-none d-lg-flex">
+            <a class="sf-brand" asp-controller="Home" asp-action="Index">
+                <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
+                <div>
+                    <span class="sf-brand-title">StudyFlow AI</span>
+                    <span class="sf-brand-sub">Học tập &amp; Ôn thi Thông minh</span>
+                </div>
+            </a>
+
+            <nav class="sf-nav">
+                <div class="sf-nav-section">Tổng quan</div>
+                <a class="sf-nav-link @(currentController == "Home" ? "active" : "")"
+                   asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Trang chủ</span>
+                </a>
+
+                <div class="sf-nav-section">Học tập cùng AI</div>
+                <a class="sf-nav-link @(currentController == "MonHoc" ? "active" : "")"
+                   asp-controller="MonHoc" asp-action="Index">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                    <span>Môn học</span>
+                </a>
+                <a class="sf-nav-link @(currentController == "TaiLieu" ? "active" : "")"
+                   asp-controller="TaiLieu" asp-action="Index">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    <span>Tài liệu</span>
+                </a>
+                <a class="sf-nav-link @(currentController == "DeThi" && currentAction != "LichSu" ? "active" : "")"
+                   asp-controller="DeThi" asp-action="Index">
+                    <i class="bi bi-patch-question-fill"></i>
+                    <span>AI Quiz Hub</span>
+                </a>
+                <a class="sf-nav-link @(currentController == "DeThi" && currentAction == "LichSu" ? "active" : "")"
+                   asp-controller="DeThi" asp-action="LichSu">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Lịch sử làm bài</span>
+                </a>
+                <a class="sf-nav-link @(currentController == "KeHoachHocTap" ? "active" : "")"
+                   asp-controller="KeHoachHocTap" asp-action="Index">
+                    <i class="bi bi-calendar2-week-fill"></i>
+                    <span>Lịch học AI</span>
+                </a>
+                <a class="sf-nav-link @(currentController == "Pomodoro" ? "active" : "")"
+                   asp-controller="Pomodoro" asp-action="Index">
+                    <i class="bi bi-stopwatch-fill"></i>
+                    <span>Pomodoro Focus</span>
+                </a>
+
+                @if (isAdmin)
+                {
+                    <div class="sf-nav-section">Quản trị hệ thống</div>
+                    <a class="sf-nav-link @(currentController == "Admin" && currentAction == "Index" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Index">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <span>Tổng quan Admin</span>
+                    </a>
+                    <a class="sf-nav-link @(currentController == "Admin" && currentAction == "Users" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Users">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Quản lý tài khoản</span>
+                    </a>
+                }
+            </nav>
+
+            <div class="sf-sidebar-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-cpu text-info"></i>
+                    <span>Tích hợp Google Gemini AI</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Offcanvas Sidebar -->
+        <div class="offcanvas offcanvas-start sf-mobile-sidebar" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+            <div class="offcanvas-header border-bottom border-secondary border-opacity-25">
+                <a class="d-flex align-items-center gap-2 text-decoration-none text-white" asp-controller="Home" asp-action="Index">
+                    <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
+                    <span class="fw-bold" id="mobileSidebarLabel">StudyFlow AI</span>
+                </a>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+            </div>
+            <div class="offcanvas-body p-2">
+                <nav class="sf-nav p-1">
+                    <div class="sf-nav-section">Tổng quan</div>
+                    <a class="sf-nav-link @(currentController == "Home" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Trang chủ</span>
+                    </a>
+
+                    <div class="sf-nav-section">Học tập cùng AI</div>
+                    <a class="sf-nav-link @(currentController == "MonHoc" ? "active" : "")"
+                       asp-controller="MonHoc" asp-action="Index">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                        <span>Môn học</span>
+                    </a>
+                    <a class="sf-nav-link @(currentController == "TaiLieu" ? "active" : "")"
+                       asp-controller="TaiLieu" asp-action="Index">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                        <span>Tài liệu</span>
+                    </a>
+                    <a class="sf-nav-link @(currentController == "DeThi" && currentAction != "LichSu" ? "active" : "")"
+                       asp-controller="DeThi" asp-action="Index">
+                        <i class="bi bi-patch-question-fill"></i>
+                        <span>AI Quiz Hub</span>
+                    </a>
+                    <a class="sf-nav-link @(currentController == "DeThi" && currentAction == "LichSu" ? "active" : "")"
+                       asp-controller="DeThi" asp-action="LichSu">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Lịch sử làm bài</span>
+                    </a>
+                    <a class="sf-nav-link @(currentController == "KeHoachHocTap" ? "active" : "")"
+                       asp-controller="KeHoachHocTap" asp-action="Index">
+                        <i class="bi bi-calendar2-week-fill"></i>
+                        <span>Lịch học AI</span>
+                    </a>
+                    <a class="sf-nav-link @(currentController == "Pomodoro" ? "active" : "")"
+                       asp-controller="Pomodoro" asp-action="Index">
+                        <i class="bi bi-stopwatch-fill"></i>
+                        <span>Pomodoro Focus</span>
+                    </a>
+
+                    @if (isAdmin)
+                    {
+                        <div class="sf-nav-section">Quản trị hệ thống</div>
+                        <a class="sf-nav-link @(currentController == "Admin" && currentAction == "Index" ? "active" : "")"
+                           asp-controller="Admin" asp-action="Index">
+                            <i class="bi bi-shield-lock-fill"></i>
+                            <span>Tổng quan Admin</span>
+                        </a>
+                        <a class="sf-nav-link @(currentController == "Admin" && currentAction == "Users" ? "active" : "")"
+                           asp-controller="Admin" asp-action="Users">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Quản lý tài khoản</span>
+                        </a>
+                    }
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="sf-main">
+            <header class="sf-topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button"
+                            data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <h1 class="sf-page-title">@(ViewData["Title"] ?? "Trang chủ")</h1>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="dropdown">
+                            <button class="btn btn-light border rounded-pill d-flex align-items-center gap-2 py-1 ps-1 pe-3 dropdown-toggle"
+                                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="sf-avatar">@initials</span>
+                                <span class="d-none d-sm-inline text-start lh-sm">
+                                    <span class="d-block fw-semibold small text-dark">@displayName</span>
+                                    <span class="d-block text-muted" style="font-size: 0.72rem;">
+                                        @(isAdmin ? "Quản trị viên" : "Sinh viên")
+                                    </span>
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                                <li class="px-3 py-2 border-bottom">
+                                    <div class="fw-semibold small">@displayName</div>
+                                    <div class="text-muted small">@currentUser?.Email</div>
+                                </li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                            <span>Đăng xuất</span>
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-secondary btn-sm px-3 rounded-pill"
+                           asp-controller="Account" asp-action="Login">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                        </a>
+                        <a class="btn btn-sf-primary btn-sm px-3 rounded-pill"
+                           asp-controller="Account" asp-action="Register">
+                            <i class="bi bi-person-plus me-1"></i>Đăng ký
+                        </a>
+                    }
+                </div>
+            </header>
+
+            <main class="sf-content">
+                @if (TempData["SuccessMessage"] is string successMsg)
+                {
+                    <div class="alert alert-success alert-dismissible fade show rounded-3 border-0 shadow-sm d-flex align-items-center gap-2" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>@successMsg</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] is string errorMsg)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 border-0 shadow-sm d-flex align-items-center gap-2" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>@errorMsg</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+
+            <footer class="sf-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <span>&copy; @DateTime.Now.Year <strong>StudyFlow AI</strong> — Website Hỗ trợ Học tập và Ôn thi Cá nhân hóa.</span>
+                <span class="text-muted">ASP.NET Core MVC &bull; EF Core &bull; Gemini AI</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

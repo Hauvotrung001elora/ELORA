@@ -1,0 +1,143 @@
+@model DeThiIndexViewModel
+@{
+    ViewData["Title"] = "AI Quiz Hub";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold mb-1">AI Quiz Hub</h2>
+        <p class="text-muted small mb-0">Tạo đề thi trắc nghiệm tự động từ tài liệu bằng Gemini AI, luyện tập tính giờ và xem phân tích chi tiết.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="LichSu" class="btn btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-clock-history me-1"></i>Lịch sử làm bài
+        </a>
+        <a asp-action="TaoDe" class="btn btn-sf-primary rounded-pill px-3">
+            <i class="bi bi-stars me-1"></i>Tạo đề trắc nghiệm AI
+        </a>
+    </div>
+</div>
+
+@if (!Model.IsGeminiConfigured)
+{
+    <div class="alert alert-warning rounded-3 border-0 shadow-sm d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-key-fill fs-5"></i>
+        <div class="small">
+            Chưa cấu hình <code>Gemini:ApiKey</code>. Hãy thiết lập trong <code>appsettings.json</code> hoặc <code>dotnet user-secrets</code> để tạo đề trắc nghiệm bằng AI.
+        </div>
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-patch-question-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Tổng số đề thi</div>
+                <div class="h4 fw-bold mb-0">@Model.DeThis.Count</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-info bg-opacity-10 text-info">
+                <i class="bi bi-check2-square"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Lượt đã hoàn thành</div>
+                <div class="h4 fw-bold mb-0">@Model.TongLuotLam</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-success bg-opacity-10 text-success">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Điểm trung bình</div>
+                <div class="h4 fw-bold mb-0">@(Model.DiemTrungBinh.HasValue ? $"{Model.DiemTrungBinh:0.##}/10" : "—")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.DeThis.Any())
+{
+    <div class="sf-card p-5 text-center">
+        <div class="sf-icon-box bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+            <i class="bi bi-stars"></i>
+        </div>
+        <h3 class="h5 fw-bold mb-2">Chưa có đề trắc nghiệm nào</h3>
+        <p class="text-muted small mb-4">Hãy chọn một tài liệu đã tải lên để Gemini AI sinh ngay bộ câu hỏi trắc nghiệm có giải thích chi tiết.</p>
+        <a asp-action="TaoDe" class="btn btn-sf-primary rounded-pill px-4">
+            <i class="bi bi-stars me-1"></i>Tạo đề thi đầu tiên
+        </a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var de in Model.DeThis)
+        {
+            var doKhoBadge = de.DoKho switch
+            {
+                "De" => ("bg-success bg-opacity-10 text-success", "Dễ"),
+                "Kho" => ("bg-danger bg-opacity-10 text-danger", "Khó"),
+                _ => ("bg-warning bg-opacity-15 text-dark", "Trung bình")
+            };
+            var latestAttempt = de.LuotLamBais.OrderByDescending(l => l.ThoiGianNopBai ?? l.ThoiGianBatDau).FirstOrDefault();
+
+            <div class="col-md-6 col-xl-4">
+                <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        @if (de.TaiLieu?.MonHoc != null)
+                        {
+                            <span class="badge rounded-pill text-white" style="background-color: @de.TaiLieu.MonHoc.MaMau;">
+                                @de.TaiLieu.MonHoc.TenMonHoc
+                            </span>
+                        }
+                        <span class="badge rounded-pill @doKhoBadge.Item1">@doKhoBadge.Item2</span>
+                    </div>
+
+                    <h3 class="h6 fw-bold mb-2">@de.TieuDe</h3>
+                    <div class="text-muted small mb-3">
+                        <div class="text-truncate" title="@de.TaiLieu?.TieuDe">
+                            <i class="bi bi-file-earmark-text me-1"></i>@de.TaiLieu?.TieuDe
+                        </div>
+                        <div class="mt-1">
+                            <i class="bi bi-list-ol me-1"></i>@de.CauHois.Count câu
+                            &bull; <i class="bi bi-stopwatch me-1"></i>@de.ThoiGianLamPhut phút
+                            &bull; @de.LuotLamBais.Count lượt làm
+                        </div>
+                    </div>
+
+                    @if (latestAttempt != null)
+                    {
+                        <div class="bg-light rounded-3 px-3 py-2 small mb-3 d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Lần gần nhất:</span>
+                            <a asp-action="KetQua" asp-route-id="@latestAttempt.MaLuotLam" class="fw-bold text-decoration-none">
+                                @latestAttempt.DiemSo.ToString("0.##")/10 (@latestAttempt.SoCauDung/@latestAttempt.TongSoCau)
+                            </a>
+                        </div>
+                    }
+
+                    <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                        <a asp-action="LamBai" asp-route-id="@de.MaDeThi" class="btn btn-sf-primary btn-sm rounded-pill px-3">
+                            <i class="bi bi-play-fill me-1"></i>Làm bài thi
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@de.MaDeThi" method="post" class="d-inline"
+                              onsubmit="return confirm('Xóa đề thi &quot;@de.TieuDe&quot; và toàn bộ lịch sử làm bài của đề này?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="Xóa đề thi">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

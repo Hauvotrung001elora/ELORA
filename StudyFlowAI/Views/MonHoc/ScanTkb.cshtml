@@ -1,0 +1,405 @@
+@model ScanTkbViewModel
+@{
+    ViewData["Title"] = "Scan ảnh Thời khóa biểu";
+    var presetColors = new[] { "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6" };
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a asp-action="Index" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách môn học
+    </a>
+    <a asp-controller="KeHoachHocTap" asp-action="Index" class="text-decoration-none text-primary small fw-medium">
+        <i class="bi bi-calendar2-week me-1"></i>Đi tới Lịch học AI
+    </a>
+</div>
+
+<!-- Header & chỉ báo 2 bước -->
+<div class="sf-card p-4 mb-4">
+    <div class="row align-items-center g-3">
+        <div class="col-lg-7">
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 mb-2">
+                <i class="bi bi-camera-fill me-1"></i>Gemini Vision AI
+            </span>
+            <h2 class="h4 fw-bold mb-1">Scan ảnh Thời khóa biểu tự động</h2>
+            <p class="text-muted small mb-0">
+                Tải ảnh chụp thời khóa biểu trường (<code>.jpg</code>, <code>.png</code>, <code>.webp</code> &le; 10MB). AI sẽ nhận diện danh sách môn học không trùng lặp và lịch bận cố định trên trường để bạn kiểm tra trước khi lưu.
+            </p>
+        </div>
+        <div class="col-lg-5">
+            <div class="d-flex align-items-center justify-content-lg-end gap-2 small">
+                <span class="badge rounded-pill px-3 py-2 @(!Model.HasResult ? "bg-primary text-white" : "bg-success bg-opacity-10 text-success")">
+                    <i class="bi @(!Model.HasResult ? "bi-1-circle-fill" : "bi-check-circle-fill") me-1"></i>1. Tải ảnh &amp; Quét AI
+                </span>
+                <i class="bi bi-chevron-right text-muted"></i>
+                <span class="badge rounded-pill px-3 py-2 @(Model.HasResult ? "bg-primary text-white" : "bg-light text-muted border")">
+                    <i class="bi bi-2-circle-fill me-1"></i>2. Xem trước &amp; Lưu
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.IsGeminiConfigured)
+{
+    <div class="alert alert-warning rounded-3 border-0 shadow-sm d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-key-fill fs-5"></i>
+        <div class="small">
+            Chưa cấu hình <code>Gemini:ApiKey</code>. Vui lòng thiết lập API Key trong <code>appsettings.json</code> hoặc <code>dotnet user-secrets</code> để sử dụng tính năng Scan ảnh Thời khóa biểu.
+        </div>
+    </div>
+}
+
+<!-- BƯỚC 1: FORM TẢI ẢNH TKB -->
+<div class="sf-card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">
+            <i class="bi bi-cloud-arrow-up-fill text-primary me-2"></i>
+            @(Model.HasResult ? "Quét lại ảnh Thời khóa biểu khác" : "Bước 1: Chọn ảnh Thời khóa biểu của bạn")
+        </h5>
+        @if (Model.HasResult)
+        {
+            <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#uploadTkbCollapse" aria-expanded="false">
+                <i class="bi bi-arrow-clockwise me-1"></i>Đổi ảnh khác
+            </button>
+        }
+    </div>
+
+    <div class="collapse @(Model.HasResult ? "" : "show")" id="uploadTkbCollapse">
+        <form asp-action="ScanTkb" method="post" enctype="multipart/form-data" id="scanTkbForm">
+            @Html.AntiForgeryToken()
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-7">
+                    <label for="tkbImageInput" class="form-label fw-semibold small">Chọn ảnh chụp màn hình hoặc ảnh chụp Thời khóa biểu</label>
+                    <input type="file" name="imageFile" id="tkbImageInput" class="form-control form-control-lg"
+                           accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required />
+                    <div class="form-text mt-2">
+                        <i class="bi bi-info-circle me-1"></i>Hỗ trợ <strong>JPG, PNG, WEBP</strong> (tối đa <strong>10 MB</strong>). Ảnh rõ chữ, đủ cột Thứ &amp; Ca/Tiết sẽ cho độ chính xác cao nhất.
+                    </div>
+                    <div id="clientImageError" class="text-danger small mt-2 d-none"></div>
+
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-sf-primary rounded-pill px-4" id="btnScanTkb" @(!Model.IsGeminiConfigured ? "disabled" : "")>
+                            <i class="bi bi-stars me-1"></i>Quét Thời khóa biểu bằng AI
+                        </button>
+                        <a asp-action="Create" class="btn btn-outline-secondary rounded-pill px-3">
+                            Hoặc thêm môn thủ công
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="border rounded-4 bg-light p-3 text-center" style="min-height: 170px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <img id="localPreviewImg" src="" alt="Xem trước ảnh TKB" class="img-fluid rounded-3 d-none" style="max-height: 220px; object-fit: contain;" />
+                        <div id="localPreviewPlaceholder" class="text-muted small">
+                            <i class="bi bi-image fs-1 d-block mb-1 opacity-50"></i>
+                            Xem trước ảnh TKB sẽ hiển thị tại đây
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- BƯỚC 2: XEM TRƯỚC & XÁC NHẬN LƯU -->
+@if (Model.HasResult)
+{
+    <form asp-action="LuuTuTkb" method="post" id="confirmTkbForm">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-4 mb-4">
+            <!-- Bảng danh sách môn học AI trích xuất -->
+            <div class="col-12">
+                <div class="sf-card p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-list-check text-success me-2"></i>Bước 2: Kiểm tra danh sách môn học AI nhận diện
+                            </h5>
+                            <span class="text-muted small">
+                                Bạn có thể sửa tên môn, bỏ tích môn không cần lưu, hoặc bổ sung nhanh ngày thi, điểm mục tiêu &amp; độ khó (có thể để trống và bổ sung sau).
+                            </span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnAddSubjectRow">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm dòng môn
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (Model.Subjects.Any(s => s.DaTonTai))
+                    {
+                        <div class="alert alert-info rounded-3 border-0 small py-2 px-3 mb-3">
+                            <i class="bi bi-shield-check me-1"></i>Các môn gắn nhãn <strong>Đã có</strong> trùng với môn học hiện tại trong tài khoản của bạn nên mặc định đã bỏ tích và hệ thống sẽ không tạo trùng.
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 sf-table" id="scanSubjectsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 44px;" class="text-center">
+                                        <input type="checkbox" class="form-check-input" id="chkSelectAll" title="Chọn / Bỏ chọn tất cả" />
+                                    </th>
+                                    <th style="min-width: 220px;">Tên môn học</th>
+                                    <th style="min-width: 150px;">Ngày thi (tùy chọn)</th>
+                                    <th style="min-width: 120px;">Điểm mục tiêu</th>
+                                    <th style="min-width: 140px;">Độ khó</th>
+                                    <th style="width: 72px;" class="text-center">Màu</th>
+                                    <th style="width: 105px;" class="text-center">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scanSubjectsBody">
+                                @for (var i = 0; i < Model.Subjects.Count; i++)
+                                {
+                                    var item = Model.Subjects[i];
+                                    <tr class="sf-tkb-row @(item.DaTonTai ? "table-light" : "")">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input sf-row-check"
+                                                   name="Subjects[@i].Chon" value="true"
+                                                   @(item.Chon ? "checked" : "") />
+                                            <input type="hidden" name="Subjects[@i].Chon" value="false" />
+                                            <input type="hidden" name="Subjects[@i].DaTonTai" value="@(item.DaTonTai ? "true" : "false")" />
+                                        </td>
+                                        <td>
+                                            <input type="text" name="Subjects[@i].TenMonHoc" value="@item.TenMonHoc"
+                                                   class="form-control form-control-sm fw-medium" maxlength="200" placeholder="Nhập tên môn học..." />
+                                        </td>
+                                        <td>
+                                            <input type="date" name="Subjects[@i].NgayThi"
+                                                   value="@(item.NgayThi.HasValue ? item.NgayThi.Value.ToString("yyyy-MM-dd") : "")"
+                                                   class="form-control form-control-sm" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Subjects[@i].DiemMucTieu"
+                                                   value="@(item.DiemMucTieu.HasValue ? item.DiemMucTieu.Value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) : "")"
+                                                   class="form-control form-control-sm" step="0.1" min="0" max="10" placeholder="VD: 8.5" />
+                                        </td>
+                                        <td>
+                                            <select name="Subjects[@i].DoKho" class="form-select form-select-sm">
+                                                <option value="1" selected="@(item.DoKho == 1)">1 - Dễ</option>
+                                                <option value="2" selected="@(item.DoKho == 2)">2 - Trung bình</option>
+                                                <option value="3" selected="@(item.DoKho == 3)">3 - Khó</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="color" name="Subjects[@i].MaMau" value="@item.MaMau"
+                                                   class="form-control form-control-color form-control-sm mx-auto" title="Chọn màu môn học" />
+                                        </td>
+                                        <td class="text-center">
+                                            @if (item.DaTonTai)
+                                            {
+                                                <span class="badge bg-secondary bg-opacity-15 text-secondary rounded-pill">Đã có</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Môn mới</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (Model.Subjects.Count == 0)
+                    {
+                        <div class="text-center text-muted small py-3" id="emptySubjectsHint">
+                            Không có môn nào được nhận diện từ ảnh. Bạn có thể bấm <strong>"Thêm dòng môn"</strong> để tự thêm nhanh.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Lịch bận từ TKB & bổ sung lịch cá nhân + Ảnh đối chiếu -->
+            <div class="@(string.IsNullOrEmpty(Model.ImagePreviewDataUrl) ? "col-12" : "col-lg-8")">
+                <div class="sf-card p-4 h-100">
+                    <h5 class="fw-bold mb-1">
+                        <i class="bi bi-clock-history text-warning me-2"></i>Lịch bận trên trường &amp; Thời gian cá nhân
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        Thông tin này sẽ được chuyển tự động sang ô lập lịch ở <strong>AI Study Planner</strong> khi bạn chọn <em>"Lưu &amp; Đi tới Lập lịch AI"</em> để AI né hoàn toàn các khung giờ bận.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="LichBanTuTkb" class="form-label fw-semibold small">Lịch bận cố định trên trường (AI đọc từ ảnh TKB)</label>
+                        <textarea name="LichBanTuTkb" id="LichBanTuTkb" class="form-control" rows="4" maxlength="1500"
+                                  placeholder="VD: Thứ 2: 07:30-11:30 (Cơ sở dữ liệu); Thứ 4: 13:00-17:00 (Mạng máy tính)...">@Model.LichBanTuTkb</textarea>
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="LichCaNhanBoSung" class="form-label fw-semibold small">Bổ sung lịch bận cá nhân / làm thêm / khung giờ rảnh ưa thích (tùy chọn)</label>
+                        <textarea name="LichCaNhanBoSung" id="LichCaNhanBoSung" class="form-control" rows="3" maxlength="800"
+                                  placeholder="VD: Bận đi làm thêm Thứ 3 & Thứ 5 từ 18:00-20:00; Bận đi chơi tối Thứ 7; Rảnh học các tối còn lại 19:30-22:00 và sáng Chủ nhật 08:30-11:30.">@Model.LichCaNhanBoSung</textarea>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.ImagePreviewDataUrl))
+            {
+                <div class="col-lg-4">
+                    <div class="sf-card p-4 h-100 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-image me-1 text-primary"></i>Ảnh TKB đối chiếu</h6>
+                            <span class="small text-muted text-truncate" style="max-width: 140px;" title="@Model.UploadedFileName">@Model.UploadedFileName</span>
+                        </div>
+                        <div class="border rounded-3 bg-light p-2 text-center my-auto">
+                            <img src="@Model.ImagePreviewDataUrl" alt="Ảnh TKB đã quét" class="img-fluid rounded-2" style="max-height: 290px; object-fit: contain;" />
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Nút xác nhận -->
+        <div class="sf-card p-3 p-md-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                Hủy bỏ
+            </a>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="submit" name="submitAction" value="save" class="btn btn-outline-primary rounded-pill px-4 fw-semibold">
+                    <i class="bi bi-check2-circle me-1"></i>Xác nhận lưu môn học
+                </button>
+                <button type="submit" name="submitAction" value="planner" class="btn btn-sf-primary rounded-pill px-4">
+                    <i class="bi bi-stars me-1"></i>Lưu &amp; Đi tới Lập lịch AI
+                </button>
+            </div>
+        </div>
+    </form>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const maxBytes = 10 * 1024 * 1024;
+            const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+            const presetColors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(presetColors));
+
+            const fileInput = document.getElementById('tkbImageInput');
+            const previewImg = document.getElementById('localPreviewImg');
+            const previewPlaceholder = document.getElementById('localPreviewPlaceholder');
+            const errBox = document.getElementById('clientImageError');
+            const scanForm = document.getElementById('scanTkbForm');
+            const btnScan = document.getElementById('btnScanTkb');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    errBox?.classList.add('d-none');
+                    const file = this.files && this.files[0];
+                    if (!file) {
+                        previewImg?.classList.add('d-none');
+                        previewPlaceholder?.classList.remove('d-none');
+                        return;
+                    }
+
+                    const lowerName = file.name.toLowerCase();
+                    const validExt = allowedExts.some(ext => lowerName.endsWith(ext));
+                    if (!validExt) {
+                        errBox.textContent = 'Chỉ hỗ trợ ảnh định dạng .jpg, .jpeg, .png hoặc .webp.';
+                        errBox.classList.remove('d-none');
+                        this.value = '';
+                        previewImg?.classList.add('d-none');
+                        previewPlaceholder?.classList.remove('d-none');
+                        return;
+                    }
+
+                    if (file.size > maxBytes) {
+                        errBox.textContent = 'Ảnh vượt quá giới hạn tối đa 10 MB. Vui lòng chọn ảnh nhỏ hơn.';
+                        errBox.classList.remove('d-none');
+                        this.value = '';
+                        previewImg?.classList.add('d-none');
+                        previewPlaceholder?.classList.remove('d-none');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        if (previewImg && e.target?.result) {
+                            previewImg.src = e.target.result;
+                            previewImg.classList.remove('d-none');
+                            previewPlaceholder?.classList.add('d-none');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            scanForm?.addEventListener('submit', function () {
+                if (btnScan) {
+                    btnScan.disabled = true;
+                    btnScan.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Gemini Vision đang đọc Thời khóa biểu...';
+                }
+            });
+
+            // Checkbox chọn tất cả & thêm dòng mới ở bước xác nhận
+            const chkAll = document.getElementById('chkSelectAll');
+            const tbody = document.getElementById('scanSubjectsBody');
+            const btnAddRow = document.getElementById('btnAddSubjectRow');
+
+            function syncSelectAll() {
+                if (!chkAll || !tbody) return;
+                const boxes = tbody.querySelectorAll('.sf-row-check');
+                if (boxes.length === 0) {
+                    chkAll.checked = false;
+                    return;
+                }
+                chkAll.checked = Array.from(boxes).every(cb => cb.checked);
+            }
+
+            syncSelectAll();
+
+            chkAll?.addEventListener('change', function () {
+                if (!tbody) return;
+                tbody.querySelectorAll('.sf-row-check').forEach(cb => {
+                    cb.checked = chkAll.checked;
+                });
+            });
+
+            tbody?.addEventListener('change', function (e) {
+                if (e.target.classList.contains('sf-row-check')) {
+                    syncSelectAll();
+                }
+            });
+
+            btnAddRow?.addEventListener('click', function () {
+                if (!tbody) return;
+                const idx = tbody.querySelectorAll('tr.sf-tkb-row').length;
+                const color = presetColors[idx % presetColors.length];
+                document.getElementById('emptySubjectsHint')?.remove();
+
+                const tr = document.createElement('tr');
+                tr.className = 'sf-tkb-row';
+                tr.innerHTML = `
+                    <td class="text-center">
+                        <input type="checkbox" class="form-check-input sf-row-check" name="Subjects[${idx}].Chon" value="true" checked />
+                        <input type="hidden" name="Subjects[${idx}].Chon" value="false" />
+                        <input type="hidden" name="Subjects[${idx}].DaTonTai" value="false" />
+                    </td>
+                    <td>
+                        <input type="text" name="Subjects[${idx}].TenMonHoc" class="form-control form-control-sm fw-medium" maxlength="200" placeholder="Nhập tên môn học..." required />
+                    </td>
+                    <td>
+                        <input type="date" name="Subjects[${idx}].NgayThi" class="form-control form-control-sm" />
+                    </td>
+                    <td>
+                        <input type="number" name="Subjects[${idx}].DiemMucTieu" class="form-control form-control-sm" step="0.1" min="0" max="10" placeholder="VD: 8.5" />
+                    </td>
+                    <td>
+                        <select name="Subjects[${idx}].DoKho" class="form-select form-select-sm">
+                            <option value="1">1 - Dễ</option>
+                            <option value="2" selected>2 - Trung bình</option>
+                            <option value="3">3 - Khó</option>
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <input type="color" name="Subjects[${idx}].MaMau" value="${color}" class="form-control form-control-color form-control-sm mx-auto" />
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Môn mới</span>
+                    </td>`;
+                tbody.appendChild(tr);
+                syncSelectAll();
+                tr.querySelector('input[type="text"]')?.focus();
+            });
+        })();
+    </script>
+}

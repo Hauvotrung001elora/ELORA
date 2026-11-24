@@ -1,0 +1,35 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Đã xảy ra lỗi";
+}
+
+<div class="row justify-content-center py-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="sf-card p-5 text-center">
+            <div class="sf-icon-box bg-danger bg-opacity-10 text-danger mx-auto mb-3" style="width: 68px; height: 68px; font-size: 1.9rem;">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+            </div>
+            <h3 class="fw-bold mb-2">Rất tiếc, đã xảy ra sự cố!</h3>
+            <p class="text-muted small mb-4">
+                Hệ thống gặp lỗi ngoài mong muốn trong quá trình xử lý yêu cầu của bạn. Vui lòng thử lại sau ít phút hoặc quay về trang chủ.
+            </p>
+
+            @if (Model?.ShowRequestId == true)
+            {
+                <div class="bg-light rounded-3 px-3 py-2 small text-muted mb-4 d-inline-block">
+                    <span>Mã tham chiếu lỗi:</span>
+                    <code class="ms-1 text-dark">@Model.RequestId</code>
+                </div>
+            }
+
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-sf-primary px-4 rounded-pill">
+                    <i class="bi bi-house-door-fill me-1"></i>Quay lại Trang chủ
+                </a>
+                <button type="button" class="btn btn-outline-secondary px-4 rounded-pill" onclick="window.history.back();">
+                    <i class="bi bi-arrow-left me-1"></i>Quay lại trang trước
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

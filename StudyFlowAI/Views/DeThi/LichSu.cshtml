@@ -1,0 +1,113 @@
+@model LichSuLamBaiViewModel
+@{
+    ViewData["Title"] = "Lịch sử làm bài";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold mb-1">Lịch sử làm bài thi</h2>
+        <p class="text-muted small mb-0">Theo dõi tiến độ điểm số và xem lại nhận xét của AI cho từng lần ôn luyện.</p>
+    </div>
+    <a asp-action="TaoDe" class="btn btn-sf-primary rounded-pill px-3">
+        <i class="bi bi-stars me-1"></i>Tạo đề mới
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-journal-check"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Tổng lượt làm bài</div>
+                <div class="h4 fw-bold mb-0">@Model.LuotLamBais.Count</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-info bg-opacity-10 text-info">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Điểm trung bình</div>
+                <div class="h4 fw-bold mb-0">@(Model.DiemTrungBinh.HasValue ? $"{Model.DiemTrungBinh:0.##}/10" : "—")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-success bg-opacity-10 text-success">
+                <i class="bi bi-award-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Điểm cao nhất</div>
+                <div class="h4 fw-bold mb-0">@(Model.DiemCaoNhat.HasValue ? $"{Model.DiemCaoNhat:0.##}/10" : "—")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.LuotLamBais.Any())
+{
+    <div class="sf-card p-5 text-center">
+        <div class="sf-icon-box bg-secondary bg-opacity-10 text-secondary mx-auto mb-3">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <h3 class="h5 fw-bold mb-2">Bạn chưa có lượt làm bài nào</h3>
+        <p class="text-muted small mb-4">Hãy vào AI Quiz Hub để chọn hoặc tạo một đề thi trắc nghiệm và bắt đầu luyện tập.</p>
+        <a asp-action="Index" class="btn btn-sf-primary rounded-pill px-4">Đi tới AI Quiz Hub</a>
+    </div>
+}
+else
+{
+    <div class="sf-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Đề thi</th>
+                        <th>Môn học</th>
+                        <th>Kết quả</th>
+                        <th>Điểm số</th>
+                        <th>Thời gian nộp</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.LuotLamBais)
+                    {
+                        var badgeClass = item.DiemSo >= 8 ? "bg-success" : (item.DiemSo >= 5 ? "bg-primary" : "bg-danger");
+                        <tr>
+                            <td class="ps-4 fw-semibold">@item.DeThi?.TieuDe</td>
+                            <td>
+                                @if (item.DeThi?.TaiLieu?.MonHoc != null)
+                                {
+                                    <span class="badge rounded-pill text-white" style="background-color: @item.DeThi.TaiLieu.MonHoc.MaMau;">
+                                        @item.DeThi.TaiLieu.MonHoc.TenMonHoc
+                                    </span>
+                                }
+                            </td>
+                            <td class="small text-muted">@item.SoCauDung / @item.TongSoCau câu đúng</td>
+                            <td>
+                                <span class="badge rounded-pill @badgeClass px-3 py-1">@item.DiemSo.ToString("0.##") / 10</span>
+                            </td>
+                            <td class="text-muted small">@((item.ThoiGianNopBai ?? item.ThoiGianBatDau).ToString("dd/MM/yyyy HH:mm"))</td>
+                            <td class="text-end pe-4">
+                                <div class="d-inline-flex gap-1">
+                                    <a asp-action="KetQua" asp-route-id="@item.MaLuotLam" class="btn btn-sm btn-light rounded-pill px-3">
+                                        Xem kết quả
+                                    </a>
+                                    <a asp-action="LamBai" asp-route-id="@item.MaDeThi" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        Làm lại
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -1,0 +1,177 @@
+@model AdminUsersViewModel
+@{
+    ViewData["Title"] = "Quản lý Tài khoản";
+}
+
+<div class="sf-card p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <div>
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-people-fill text-primary me-2"></i>Quản lý Tài khoản Người dùng
+            </h4>
+            <p class="text-muted small mb-0">
+                Tổng cộng <strong>@Model.TongTaiKhoan</strong> tài khoản
+                (<span class="text-success fw-medium">@Model.SoDangHoatDong hoạt động</span>,
+                <span class="text-danger fw-medium">@Model.SoDangBiKhoa đang bị khóa</span>).
+            </p>
+        </div>
+        <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i>Về Tổng quan Admin
+        </a>
+    </div>
+
+    <!-- Bộ lọc tìm kiếm -->
+    <form asp-controller="Admin" asp-action="Users" method="get" class="row g-2 align-items-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" name="search" value="@Model.Search" class="form-control border-start-0"
+                       placeholder="Tìm theo họ tên hoặc email..." />
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <select name="status" class="form-select">
+                <option value="" selected="@(string.IsNullOrEmpty(Model.Status))">Tất cả trạng thái</option>
+                <option value="active" selected="@(string.Equals(Model.Status, "active", StringComparison.OrdinalIgnoreCase))">Đang hoạt động</option>
+                <option value="locked" selected="@(string.Equals(Model.Status, "locked", StringComparison.OrdinalIgnoreCase))">Đang bị khóa</option>
+            </select>
+        </div>
+        <div class="col-md-2 col-lg-4 d-flex gap-2">
+            <button type="submit" class="btn btn-sf-primary rounded-pill px-4">
+                <i class="bi bi-funnel me-1"></i>Lọc
+            </button>
+            @if (!string.IsNullOrWhiteSpace(Model.Search) || !string.IsNullOrWhiteSpace(Model.Status))
+            {
+                <a asp-controller="Admin" asp-action="Users" class="btn btn-outline-secondary rounded-pill px-3">
+                    Đặt lại
+                </a>
+            }
+        </div>
+    </form>
+</div>
+
+<div class="sf-card p-4">
+    @if (Model.Users.Count == 0)
+    {
+        <div class="sf-empty-state py-5">
+            <i class="bi bi-person-x text-muted"></i>
+            <div class="fw-semibold mb-1">Không tìm thấy tài khoản phù hợp</div>
+            <p class="text-muted small mb-0">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc trạng thái.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 sf-table">
+                <thead>
+                    <tr>
+                        <th>Họ tên &amp; Email</th>
+                        <th>Vai trò</th>
+                        <th>Ngày tạo</th>
+                        <th class="text-center">Môn học</th>
+                        <th class="text-center">Tài liệu</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        var initials = string.Join("", user.HoTen
+                            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .TakeLast(2)
+                            .Select(w => char.ToUpperInvariant(w[0])));
+                        if (string.IsNullOrEmpty(initials))
+                        {
+                            initials = "U";
+                        }
+
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="sf-avatar" style="width: 34px; height: 34px; font-size: 0.78rem;">@initials</span>
+                                    <div>
+                                        <div class="fw-semibold d-flex align-items-center gap-2">
+                                            <span>@user.HoTen</span>
+                                            @if (user.IsCurrentUser)
+                                            {
+                                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill" style="font-size: 0.7rem;">Bạn</span>
+                                            }
+                                        </div>
+                                        <div class="small text-muted">@user.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if (user.Roles.Count == 0)
+                                {
+                                    <span class="badge bg-light text-muted border rounded-pill">Chưa gán</span>
+                                }
+                                else
+                                {
+                                    @foreach (var role in user.Roles)
+                                    {
+                                        var isRoleAdmin = string.Equals(role, DbSeeder.RoleAdmin, StringComparison.OrdinalIgnoreCase);
+                                        <span class="badge rounded-pill @(isRoleAdmin ? "bg-primary text-white" : "bg-secondary bg-opacity-10 text-secondary")">
+                                            @(isRoleAdmin ? "Quản trị viên (Admin)" : "Sinh viên")
+                                        </span>
+                                    }
+                                }
+                            </td>
+                            <td class="small text-muted text-nowrap">@user.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-center fw-medium">@user.SoMonHoc</td>
+                            <td class="text-center fw-medium">@user.SoTaiLieu</td>
+                            <td class="text-center">
+                                @if (user.IsLockedOut)
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">
+                                        <i class="bi bi-lock-fill me-1"></i>Đang bị khóa
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Hoạt động
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                @if (user.IsCurrentUser)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" disabled
+                                            title="Không thể tự khóa tài khoản của chính mình">
+                                        <i class="bi bi-shield-check me-1"></i>Tài khoản hiện tại
+                                    </button>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Admin" asp-action="ToggleLockout" method="post" class="d-inline"
+                                          onsubmit="return confirm('@(user.IsLockedOut ? $"Bạn có chắc muốn MỞ KHÓA tài khoản {user.Email}?" : $"Bạn có chắc muốn KHÓA tài khoản {user.Email}? Người dùng sẽ không thể đăng nhập.")');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@user.Id" />
+                                        <input type="hidden" name="search" value="@Model.Search" />
+                                        <input type="hidden" name="status" value="@Model.Status" />
+                                        @if (user.IsLockedOut)
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                <i class="bi bi-unlock-fill me-1"></i>Mở khóa
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                <i class="bi bi-lock-fill me-1"></i>Khóa tài khoản
+                                            </button>
+                                        }
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

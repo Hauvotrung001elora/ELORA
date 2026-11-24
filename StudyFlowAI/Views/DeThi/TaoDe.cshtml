@@ -1,0 +1,98 @@
+@model TaoDeThiViewModel
+@{
+    ViewData["Title"] = "Tạo đề trắc nghiệm AI";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại AI Quiz Hub
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="sf-card p-4 p-md-5">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="sf-icon-box bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-stars"></i>
+                </div>
+                <div>
+                    <h2 class="h4 fw-bold mb-0">Tạo đề trắc nghiệm bằng Gemini AI</h2>
+                    <p class="text-muted small mb-0">Chọn tài liệu nguồn, số lượng câu hỏi và độ khó — AI sẽ sinh đề thi chuẩn JSON kèm lời giải thích chi tiết.</p>
+                </div>
+            </div>
+
+            @if (!Model.IsGeminiConfigured)
+            {
+                <div class="alert alert-warning rounded-3 small d-flex align-items-center gap-2 mb-4">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Chưa cấu hình <code>Gemini:ApiKey</code>. Hãy thêm API Key vào <code>appsettings.json</code> hoặc <code>dotnet user-secrets</code> trước khi tạo đề.</span>
+                </div>
+            }
+
+            <form asp-action="TaoDe" method="post" id="createQuizForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="MaTaiLieu" class="form-label fw-semibold"></label>
+                    <select asp-for="MaTaiLieu" asp-items="Model.TaiLieuOptions" class="form-select"></select>
+                    <span asp-validation-for="MaTaiLieu" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TieuDe" class="form-label fw-semibold"></label>
+                    <input asp-for="TieuDe" class="form-control" placeholder="Để trống để hệ thống tự đặt tên theo tài liệu" />
+                    <span asp-validation-for="TieuDe" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="SoCau" class="form-label fw-semibold"></label>
+                        <select asp-for="SoCau" class="form-select">
+                            <option value="5">5 câu hỏi</option>
+                            <option value="10">10 câu hỏi</option>
+                            <option value="15">15 câu hỏi</option>
+                            <option value="20">20 câu hỏi</option>
+                        </select>
+                        <span asp-validation-for="SoCau" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DoKho" class="form-label fw-semibold"></label>
+                        <select asp-for="DoKho" class="form-select">
+                            <option value="De">Dễ (Nhận biết)</option>
+                            <option value="TrungBinh">Trung bình (Thông hiểu)</option>
+                            <option value="Kho">Khó (Vận dụng cao)</option>
+                        </select>
+                        <span asp-validation-for="DoKho" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="ThoiGianLamPhut" class="form-label fw-semibold"></label>
+                        <input asp-for="ThoiGianLamPhut" type="number" min="1" max="180" class="form-control" />
+                        <span asp-validation-for="ThoiGianLamPhut" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                    <button type="submit" class="btn btn-sf-primary rounded-pill px-4" id="btnGenerateQuiz">
+                        <i class="bi bi-magic me-1"></i>Tạo đề thi bằng AI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('createQuizForm')?.addEventListener('submit', function () {
+            const btn = document.getElementById('btnGenerateQuiz');
+            if (btn && $(this).valid()) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Gemini AI đang tạo đề thi...';
+            }
+        });
+    </script>
+}

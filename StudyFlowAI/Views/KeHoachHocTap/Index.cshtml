@@ -1,0 +1,572 @@
+@model KeHoachHocTapIndexViewModel
+@{
+    ViewData["Title"] = "Lịch học tập AI";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="h4 fw-bold mb-1">AI Study Planner</h2>
+        <p class="text-muted small mb-0">Lập lịch ôn thi tự động theo ngày thi, độ khó &amp; điểm mục tiêu bằng Gemini AI, tự động né lịch bận TKB và điều chỉnh khi bỏ lỡ hoặc điểm thi thấp.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-controller="MonHoc" asp-action="ScanTkb" class="btn btn-outline-success rounded-pill px-3 fw-medium">
+            <i class="bi bi-camera-fill me-1"></i>Scan ảnh TKB
+        </a>
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#manualCreateModal"
+                @(Model.MonHocs.Count == 0 ? "disabled" : "")>
+            <i class="bi bi-plus-lg me-1"></i>Thêm buổi học
+        </button>
+        <button type="button" class="btn btn-outline-warning text-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#rescheduleAiModal"
+                @(Model.MonHocs.Count == 0 ? "disabled" : "")>
+            <i class="bi bi-arrow-repeat me-1"></i>Điều chỉnh lại lịch bằng AI
+        </button>
+        <button type="button" class="btn btn-sf-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#generateAiModal"
+                @(Model.MonHocs.Count == 0 ? "disabled" : "")>
+            <i class="bi bi-stars me-1"></i>Lập lịch tự động bằng AI
+        </button>
+    </div>
+</div>
+
+@if (!Model.IsGeminiConfigured)
+{
+    <div class="alert alert-warning rounded-3 border-0 shadow-sm d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-key-fill fs-5"></i>
+        <div class="small">
+            Chưa cấu hình <code>Gemini:ApiKey</code>. Bạn vẫn có thể thêm/quản lý lịch học thủ công, hoặc cấu hình API Key để dùng tính năng <strong>Lập lịch AI</strong> và <strong>Điều chỉnh lịch AI</strong>.
+        </div>
+    </div>
+}
+
+@if (!Model.MonHocs.Any())
+{
+    <div class="alert alert-info rounded-3 border-0 shadow-sm d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="small">
+            <i class="bi bi-info-circle-fill me-2"></i>Bạn chưa có môn học nào. Hãy tạo môn học thủ công hoặc <strong>Scan ảnh Thời khóa biểu</strong> để AI tự động trích xuất môn học &amp; lịch bận trên trường.
+        </div>
+        <div class="d-flex gap-2 flex-shrink-0">
+            <a asp-controller="MonHoc" asp-action="ScanTkb" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                <i class="bi bi-camera-fill me-1"></i>Scan ảnh TKB
+            </a>
+            <a asp-controller="MonHoc" asp-action="Create" class="btn btn-sf-primary btn-sm rounded-pill px-3">Tạo môn học</a>
+        </div>
+    </div>
+}
+
+<!-- Thống kê nhanh -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-calendar-event-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Chưa làm</div>
+                <div class="h4 fw-bold mb-0">@Model.SoBuoiChuaLam</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-success bg-opacity-10 text-success">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Hoàn thành</div>
+                <div class="h4 fw-bold mb-0">@Model.SoBuoiHoanThanh</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-danger bg-opacity-10 text-danger">
+                <i class="bi bi-exclamation-circle-fill"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Đã bỏ lỡ</div>
+                <div class="h4 fw-bold mb-0">@Model.SoBuoiBoLo</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="sf-card p-3 d-flex align-items-center gap-3">
+            <div class="sf-icon-box bg-warning bg-opacity-15 text-warning">
+                <i class="bi bi-graph-down-arrow"></i>
+            </div>
+            <div>
+                <div class="text-muted small">Đề điểm &lt; 6.5 (30 ngày)</div>
+                <div class="h4 fw-bold mb-0">@Model.SoBaiThiDiemThap</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chú thích màu môn học & FullCalendar -->
+<div class="sf-card p-3 p-md-4">
+    @if (Model.MonHocs.Any())
+    {
+        <div class="d-flex flex-wrap align-items-center gap-3 pb-3 mb-3 border-bottom small">
+            <span class="text-muted fw-semibold">Môn học:</span>
+            @foreach (var mh in Model.MonHocs)
+            {
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span class="sf-color-dot" style="background-color: @mh.MaMau;"></span>
+                    <span>@mh.TenMonHoc</span>
+                </span>
+            }
+            <span class="ms-auto text-muted">
+                <span class="me-2"><code>[AI]</code> Do AI đề xuất</span>
+                <span class="me-2"><code>✓</code> Hoàn thành</span>
+                <span><code>✕</code> Bỏ lỡ</span>
+            </span>
+        </div>
+    }
+
+    <div id="studyCalendar"></div>
+</div>
+
+<!-- Hidden antiforgery token for AJAX status updates -->
+<form id="ajaxTokenForm" class="d-none">@Html.AntiForgeryToken()</form>
+
+<!-- Modal 1: Thêm buổi học thủ công -->
+<div class="modal fade" id="manualCreateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Thêm buổi học mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Môn học</label>
+                        <select name="MaMonHoc" id="createMaMonHoc" class="form-select" required>
+                            @foreach (var mh in Model.MonHocs)
+                            {
+                                <option value="@mh.MaMonHoc">@mh.TenMonHoc</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Tài liệu đính kèm (tuỳ chọn)</label>
+                        <select name="MaTaiLieu" id="createMaTaiLieu" class="form-select">
+                            <option value="">-- Không gắn tài liệu cụ thể --</option>
+                            @foreach (var tl in Model.TaiLieus)
+                            {
+                                <option value="@tl.MaTaiLieu" data-monhoc="@tl.MaMonHoc">[@tl.MonHoc?.TenMonHoc] @tl.TieuDe</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Tiêu đề buổi học</label>
+                        <input type="text" name="TieuDe" class="form-control" required maxlength="255" placeholder="VD: Ôn chương 2 & làm bài tập" />
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-5">
+                            <label class="form-label fw-semibold small">Ngày học</label>
+                            <input type="date" name="NgayHoc" id="createNgayHoc" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small">Giờ bắt đầu</label>
+                            <input type="time" name="GioBatDau" class="form-control" value="19:30" required />
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label fw-semibold small">Phút</label>
+                            <input type="number" name="ThoiLuongPhut" class="form-control" value="60" min="5" max="480" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sf-primary rounded-pill px-4">Lưu buổi học</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Lập lịch tự động bằng AI -->
+<div class="modal fade" id="generateAiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <form asp-action="TaoLichAI" method="post" id="taoLichAiForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-stars text-primary me-2"></i>Lập lịch học tập tự động bằng Gemini AI</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Chọn các môn học cần lập lịch</label>
+                        <div class="row g-2">
+                            @foreach (var mh in Model.MonHocs)
+                            {
+                                var hasAvg = Model.DiemTrungBinhTheoMon.TryGetValue(mh.MaMonHoc, out var avgScore);
+                                <div class="col-md-6">
+                                    <label class="d-flex align-items-center gap-2 p-2 px-3 border rounded-3 bg-light bg-opacity-50" style="cursor: pointer;">
+                                        <input type="checkbox" class="form-check-input mt-0" name="SelectedMonHocIds" value="@mh.MaMonHoc" checked />
+                                        <span class="sf-color-dot flex-shrink-0" style="background-color: @mh.MaMau;"></span>
+                                        <div class="min-w-0 small">
+                                            <div class="fw-semibold text-truncate">@mh.TenMonHoc</div>
+                                            <div class="text-muted" style="font-size: 0.72rem;">
+                                                @(mh.NgayThi.HasValue ? $"Thi: {mh.NgayThi.Value:dd/MM/yyyy}" : "Chưa đặt ngày thi")
+                                                &bull; Độ khó @mh.DoKho/3
+                                                @if (mh.DiemMucTieu.HasValue)
+                                                {
+                                                    <span>&bull; Mục tiêu @mh.DiemMucTieu.Value.ToString("0.#")đ</span>
+                                                }
+                                                @if (hasAvg)
+                                                {
+                                                    <span>&bull; TB hiện tại @avgScore.ToString("0.##")đ</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Ngày bắt đầu</label>
+                            <input type="date" name="NgayBatDau" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Số ngày lập lịch</label>
+                            <select name="SoNgay" class="form-select">
+                                <option value="7" selected>7 ngày (1 tuần)</option>
+                                <option value="14">14 ngày (2 tuần)</option>
+                                <option value="21">21 ngày (3 tuần)</option>
+                            </select>
+                        </div>
+                    </div>
+                    @{
+                        var defaultScheduleText = !string.IsNullOrWhiteSpace(Model.PrefilledKhungGioRanh)
+                            ? Model.PrefilledKhungGioRanh
+                            : "Thứ 2 - Thứ 6: 19:30 - 21:30; Thứ 7 - Chủ nhật: 09:00 - 11:30 và 15:00 - 17:00";
+                    }
+                    <div class="mb-2">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+                            <label class="form-label fw-semibold small mb-0">Lịch bận (TKB / cá nhân) &amp; Khung giờ rảnh của bạn</label>
+                            @if (!string.IsNullOrWhiteSpace(Model.PrefilledKhungGioRanh))
+                            {
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">
+                                    <i class="bi bi-camera-fill me-1"></i>Đã điền sẵn từ ảnh TKB
+                                </span>
+                            }
+                            else
+                            {
+                                <a asp-controller="MonHoc" asp-action="ScanTkb" class="small text-decoration-none text-success fw-medium">
+                                    <i class="bi bi-camera me-1"></i>Quét nhanh lịch bận từ ảnh TKB
+                                </a>
+                            }
+                        </div>
+                        <textarea name="KhungGioRanh" class="form-control" rows="4" maxlength="2000" required>@defaultScheduleText</textarea>
+                        <div class="form-text">Gemini AI sẽ né các khung giờ bận, xếp lịch vào giờ rảnh và ưu tiên nhiều buổi hơn cho môn sắp thi, độ khó cao, điểm mục tiêu cao hoặc còn xa mục tiêu.</div>
+                    </div>
+                    <div class="alert alert-warning rounded-3 border-0 small py-2 px-3 mt-3 mb-0 d-flex align-items-start gap-2">
+                        <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+                        <span><strong>Lưu ý:</strong> Tạo lịch mới sẽ tự động thay thế các buổi học chưa hoàn thành trước đó (các buổi đã <em>Hoàn thành</em> vẫn được giữ nguyên để bảo toàn thống kê).</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-sf-primary rounded-pill px-4" id="btnTaoLichAi">
+                        <i class="bi bi-magic me-1"></i>Tạo lịch bằng AI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 3: Điều chỉnh lại lịch bằng AI -->
+<div class="modal fade" id="rescheduleAiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <form asp-action="DieuChinhAI" method="post" id="dieuChinhAiForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-arrow-repeat text-warning me-2"></i>Điều chỉnh lại lịch bằng AI</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="bg-light rounded-3 p-3 small mb-3">
+                        <div>Hiện tại hệ thống ghi nhận:</div>
+                        <ul class="mb-0 mt-1">
+                            <li><strong>@Model.SoBuoiBoLo</strong> buổi học đã đánh dấu <strong>Bỏ lỡ</strong></li>
+                            <li><strong>@Model.SoBaiThiDiemThap</strong> lượt thi điểm thấp (<strong>&lt; 6.5/10</strong>) trong 30 ngày qua</li>
+                        </ul>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Khung giờ rảnh ưu tiên để học bù</label>
+                        <textarea name="KhungGioRanh" class="form-control" rows="3" required>Các buổi tối 19:30 - 21:30 và cuối tuần 09:00 - 11:30</textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="XoaBuoiBoLoCu" value="true" id="chkXoaBoLo" />
+                        <label class="form-check-label small" for="chkXoaBoLo">
+                            Xóa các buổi <strong>Bỏ lỡ</strong> cũ sau khi AI tạo buổi ôn bù mới (không bao giờ xóa các buổi đã <em>Hoàn thành</em>)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-semibold" id="btnDieuChinhAi">
+                        <i class="bi bi-stars me-1"></i>Điều chỉnh ngay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 4: Chi tiết / Sửa / Đổi trạng thái / Xóa buổi học -->
+<div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge rounded-pill text-white" id="detailMonHocBadge">Môn học</span>
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary d-none" id="detailAiBadge"><i class="bi bi-stars me-1"></i>AI tạo</span>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-0" id="detailTitle">Chi tiết buổi học</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Hành động nhanh -->
+                <div class="d-flex flex-wrap gap-2 mb-3 pb-3 border-bottom">
+                    <a href="#" id="detailPomodoroLink" class="btn btn-sf-primary btn-sm rounded-pill px-3">
+                        <i class="bi bi-stopwatch-fill me-1"></i>Học Pomodoro ngay
+                    </a>
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" onclick="quickChangeStatus('HoanThanh')">
+                        <i class="bi bi-check-lg me-1"></i>Hoàn thành
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="quickChangeStatus('BoLo')">
+                        <i class="bi bi-x-lg me-1"></i>Bỏ lỡ
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="quickChangeStatus('ChuaLam')">
+                        Chưa làm
+                    </button>
+                </div>
+
+                <!-- Form chỉnh sửa -->
+                <form asp-action="Edit" method="post" id="editSessionForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="MaKeHoach" id="editMaKeHoach" />
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold small">Môn học</label>
+                        <select name="MaMonHoc" id="editMaMonHoc" class="form-select form-select-sm" required>
+                            @foreach (var mh in Model.MonHocs)
+                            {
+                                <option value="@mh.MaMonHoc">@mh.TenMonHoc</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold small">Tài liệu đính kèm</label>
+                        <select name="MaTaiLieu" id="editMaTaiLieu" class="form-select form-select-sm">
+                            <option value="">-- Không gắn tài liệu --</option>
+                            @foreach (var tl in Model.TaiLieus)
+                            {
+                                <option value="@tl.MaTaiLieu" data-monhoc="@tl.MaMonHoc">[@tl.MonHoc?.TenMonHoc] @tl.TieuDe</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold small">Tiêu đề buổi học</label>
+                        <input type="text" name="TieuDe" id="editTieuDe" class="form-control form-control-sm" required maxlength="255" />
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-5">
+                            <label class="form-label fw-semibold small">Ngày học</label>
+                            <input type="date" name="NgayHoc" id="editNgayHoc" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold small">Giờ bắt đầu</label>
+                            <input type="time" name="GioBatDau" id="editGioBatDau" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label fw-semibold small">Phút</label>
+                            <input type="number" name="ThoiLuongPhut" id="editThoiLuongPhut" class="form-control form-control-sm" min="5" max="480" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Trạng thái</label>
+                        <select name="TrangThai" id="editTrangThai" class="form-select form-select-sm">
+                            <option value="ChuaLam">Chưa làm</option>
+                            <option value="HoanThanh">Hoàn thành</option>
+                            <option value="BoLo">Bỏ lỡ</option>
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" id="btnTriggerDelete">
+                            <i class="bi bi-trash me-1"></i>Xóa buổi học
+                        </button>
+                        <button type="submit" class="btn btn-sf-primary btn-sm rounded-pill px-4">
+                            <i class="bi bi-save me-1"></i>Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+
+                <form asp-action="Delete" method="post" id="deleteSessionForm" class="d-none">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteSessionId" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@fullcalendar/core@6.1.15/locales/vi.global.min.js"></script>
+    <script>
+        let calendarInstance = null;
+        let currentEventId = null;
+
+        function filterTaiLieuDropdown(monHocSelectId, taiLieuSelectId) {
+            const mhSelect = document.getElementById(monHocSelectId);
+            const tlSelect = document.getElementById(taiLieuSelectId);
+            if (!mhSelect || !tlSelect) return;
+
+            const selectedMh = mhSelect.value;
+            Array.from(tlSelect.options).forEach(opt => {
+                if (!opt.value) {
+                    opt.hidden = false;
+                    return;
+                }
+                const match = opt.dataset.monhoc === selectedMh;
+                opt.hidden = !match;
+                if (!match && opt.selected) {
+                    tlSelect.value = '';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            filterTaiLieuDropdown('createMaMonHoc', 'createMaTaiLieu');
+            document.getElementById('createMaMonHoc')?.addEventListener('change', () =>
+                filterTaiLieuDropdown('createMaMonHoc', 'createMaTaiLieu'));
+            document.getElementById('editMaMonHoc')?.addEventListener('change', () =>
+                filterTaiLieuDropdown('editMaMonHoc', 'editMaTaiLieu'));
+
+            const calendarEl = document.getElementById('studyCalendar');
+            const detailModal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+            const createModal = new bootstrap.Modal(document.getElementById('manualCreateModal'));
+
+            calendarInstance = new FullCalendar.Calendar(calendarEl, {
+                locale: 'vi',
+                initialView: 'dayGridMonth',
+                height: 'auto',
+                firstDay: 1,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                buttonText: {
+                    today: 'Hôm nay',
+                    month: 'Tháng',
+                    week: 'Tuần',
+                    list: 'Danh sách'
+                },
+                events: '@Url.Action("GetEvents", "KeHoachHocTap")',
+                dateClick: function (info) {
+                    const createDateInput = document.getElementById('createNgayHoc');
+                    if (createDateInput && @(Model.MonHocs.Count > 0 ? "true" : "false")) {
+                        createDateInput.value = info.dateStr.substring(0, 10);
+                        createModal.show();
+                    }
+                },
+                eventClick: function (info) {
+                    const p = info.event.extendedProps;
+                    currentEventId = p.maKeHoach;
+
+                    document.getElementById('detailTitle').textContent = p.rawTieuDe;
+                    const badge = document.getElementById('detailMonHocBadge');
+                    badge.textContent = p.tenMonHoc;
+                    badge.style.backgroundColor = p.maMau || '#4f46e5';
+
+                    const aiBadge = document.getElementById('detailAiBadge');
+                    aiBadge.classList.toggle('d-none', !p.doAITao);
+
+                    document.getElementById('detailPomodoroLink').href =
+                        '@Url.Action("Index", "Pomodoro")?maKeHoach=' + encodeURIComponent(p.maKeHoach);
+
+                    document.getElementById('editMaKeHoach').value = p.maKeHoach;
+                    document.getElementById('editMaMonHoc').value = p.maMonHoc;
+                    filterTaiLieuDropdown('editMaMonHoc', 'editMaTaiLieu');
+                    document.getElementById('editMaTaiLieu').value = p.maTaiLieu || '';
+                    document.getElementById('editTieuDe').value = p.rawTieuDe;
+                    document.getElementById('editNgayHoc').value = p.ngayHoc;
+                    document.getElementById('editGioBatDau').value = p.gioBatDau;
+                    document.getElementById('editThoiLuongPhut').value = p.thoiLuongPhut;
+                    document.getElementById('editTrangThai').value = p.trangThai;
+                    document.getElementById('deleteSessionId').value = p.maKeHoach;
+
+                    detailModal.show();
+                }
+            });
+
+            calendarInstance.render();
+
+            document.getElementById('btnTriggerDelete')?.addEventListener('click', function () {
+                if (confirm('Bạn có chắc chắn muốn xóa buổi học này khỏi lịch?')) {
+                    document.getElementById('deleteSessionForm').submit();
+                }
+            });
+
+            document.getElementById('taoLichAiForm')?.addEventListener('submit', function () {
+                const btn = document.getElementById('btnTaoLichAi');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Gemini AI đang lập lịch...';
+                }
+            });
+
+            document.getElementById('dieuChinhAiForm')?.addEventListener('submit', function () {
+                const btn = document.getElementById('btnDieuChinhAi');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Gemini AI đang điều chỉnh...';
+                }
+            });
+
+            @if (Model.AutoOpenGenerateModal && Model.MonHocs.Count > 0)
+            {
+                <text>
+                const generateModalEl = document.getElementById('generateAiModal');
+                if (generateModalEl) {
+                    new bootstrap.Modal(generateModalEl).show();
+                }
+                </text>
+            }
+        });
+
+        async function quickChangeStatus(newStatus) {
+            if (!currentEventId) return;
+            const token = document.querySelector('#ajaxTokenForm input[name="__RequestVerificationToken"]')?.value;
+            const formData = new URLSearchParams();
+            formData.append('id', currentEventId);
+            formData.append('trangThai', newStatus);
+            formData.append('__RequestVerificationToken', token || '');
+
+            const resp = await fetch('@Url.Action("UpdateStatus", "KeHoachHocTap")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData.toString()
+            });
+
+            if (resp.ok) {
+                window.location.reload();
+            } else {
+                alert('Không thể cập nhật trạng thái buổi học.');
+            }
+        }
+    </script>
+}

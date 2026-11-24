@@ -1,0 +1,80 @@
+@model MonHocFormViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa môn học";
+    var presetColors = new[] { "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6" };
+}
+
+<div class="mb-3">
+    <a asp-action="Details" asp-route-id="@Model.MaMonHoc" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại chi tiết môn học
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="sf-card p-4 p-md-5">
+            <h2 class="h4 fw-bold mb-1">Chỉnh sửa môn học</h2>
+            <p class="text-muted small mb-4">Cập nhật thông tin kỳ thi, độ khó hoặc màu sắc đại diện.</p>
+
+            <form asp-action="Edit" asp-route-id="@Model.MaMonHoc" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="MaMonHoc" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="TenMonHoc" class="form-label fw-semibold"></label>
+                    <input asp-for="TenMonHoc" class="form-control form-control-lg" />
+                    <span asp-validation-for="TenMonHoc" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="NgayThi" class="form-label fw-semibold"></label>
+                        <input asp-for="NgayThi" type="date" class="form-control" />
+                        <span asp-validation-for="NgayThi" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DiemMucTieu" class="form-label fw-semibold"></label>
+                        <input asp-for="DiemMucTieu" type="number" step="0.1" min="0" max="10" class="form-control" />
+                        <span asp-validation-for="DiemMucTieu" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DoKho" class="form-label fw-semibold"></label>
+                        <select asp-for="DoKho" class="form-select">
+                            <option value="1">1 - Dễ</option>
+                            <option value="2">2 - Trung bình</option>
+                            <option value="3">3 - Khó</option>
+                        </select>
+                        <span asp-validation-for="DoKho" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="MaMau" class="form-label fw-semibold"></label>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <input asp-for="MaMau" type="color" class="form-control form-control-color" id="colorPicker" />
+                        @foreach (var color in presetColors)
+                        {
+                            <button type="button" class="btn btn-sm rounded-circle border p-0 sf-preset-color"
+                                    style="width: 28px; height: 28px; background-color: @color;"
+                                    onclick="document.getElementById('colorPicker').value='@color'"
+                                    title="Chọn màu @color"></button>
+                        }
+                    </div>
+                    <span asp-validation-for="MaMau" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Details" asp-route-id="@Model.MaMonHoc" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                    <button type="submit" class="btn btn-sf-primary rounded-pill px-4">
+                        <i class="bi bi-save me-1"></i>Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

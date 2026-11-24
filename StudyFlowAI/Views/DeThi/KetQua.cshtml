@@ -1,0 +1,134 @@
+@model KetQuaBaiThiViewModel
+@{
+    ViewData["Title"] = "Kết quả bài thi";
+    var lb = Model.LuotLamBai;
+    var scoreClass = lb.DiemSo >= 8 ? "text-success" : (lb.DiemSo >= 5 ? "text-primary" : "text-danger");
+    var durationText = Model.ThoiGianThucHien.HasValue
+        ? $"{(int)Model.ThoiGianThucHien.Value.TotalMinutes} phút {Model.ThoiGianThucHien.Value.Seconds} giây"
+        : "—";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a asp-action="LichSu" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Xem lịch sử làm bài
+    </a>
+    <div class="d-flex gap-2">
+        <a asp-action="LamBai" asp-route-id="@lb.MaDeThi" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-repeat me-1"></i>Làm lại đề này
+        </a>
+        <a asp-action="Index" class="btn btn-sf-primary btn-sm rounded-pill px-3">
+            <i class="bi bi-grid me-1"></i>Về AI Quiz Hub
+        </a>
+    </div>
+</div>
+
+<!-- Tổng quan điểm số -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="sf-card p-4 h-100 text-center d-flex flex-column justify-content-center">
+            <div class="text-muted small mb-1">ĐIỂM SỐ CỦA BẠN</div>
+            <div class="display-3 fw-bold @scoreClass mb-2">@lb.DiemSo.ToString("0.##")<span class="fs-4 text-muted">/10</span></div>
+            <div class="d-flex justify-content-center gap-3 small text-muted mb-2">
+                <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>@lb.SoCauDung đúng</span>
+                <span class="text-danger fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>@(lb.TongSoCau - lb.SoCauDung) sai</span>
+            </div>
+            <div class="small text-muted">
+                <i class="bi bi-stopwatch me-1"></i>Thời gian: @durationText
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="sf-card p-4 h-100">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="sf-icon-box bg-primary bg-opacity-10 text-primary" style="width: 38px; height: 38px; font-size: 1.1rem;">
+                    <i class="bi bi-stars"></i>
+                </span>
+                <div>
+                    <h2 class="h6 fw-bold mb-0">Nhận xét &amp; Gợi ý ôn tập từ Gemini AI</h2>
+                    <div class="text-muted small">@lb.DeThi?.TieuDe</div>
+                </div>
+            </div>
+            <div class="bg-light rounded-3 p-3 mt-3 small lh-lg" style="white-space: pre-line;">
+                @(string.IsNullOrWhiteSpace(lb.NhanXetAI) ? "Không có nhận xét cho lượt làm bài này." : lb.NhanXetAI)
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chi tiết từng câu hỏi -->
+<h3 class="h5 fw-bold mb-3">
+    <i class="bi bi-list-check me-2 text-primary"></i>Chi tiết từng câu hỏi (@Model.ChiTietTraLois.Count câu)
+</h3>
+
+<div class="d-flex flex-column gap-3">
+    @for (int i = 0; i < Model.ChiTietTraLois.Count; i++)
+    {
+        var ct = Model.ChiTietTraLois[i];
+        var ch = ct.CauHoi;
+        if (ch is null) continue;
+
+        var borderClass = ct.LaDapAnDung ? "border-success" : "border-danger";
+        var statusBadge = ct.LaDapAnDung
+            ? ("bg-success", "bi-check-lg", "Đúng")
+            : ("bg-danger", "bi-x-lg", string.IsNullOrEmpty(ct.DapAnChon) ? "Bỏ trống" : "Sai");
+
+        var options = new (string Key, string Value)[]
+        {
+            ("A", ch.DapAnA),
+            ("B", ch.DapAnB),
+            ("C", ch.DapAnC),
+            ("D", ch.DapAnD)
+        };
+
+        <div class="sf-card p-4 border-start border-4 @borderClass">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                <div class="fw-semibold">
+                    <span class="text-primary me-1">Câu @(i + 1):</span>@ch.NoiDung
+                </div>
+                <span class="badge rounded-pill @statusBadge.Item1 flex-shrink-0">
+                    <i class="bi @statusBadge.Item2 me-1"></i>@statusBadge.Item3
+                </span>
+            </div>
+
+            <div class="row g-2 mb-3">
+                @foreach (var opt in options)
+                {
+                    var isCorrect = string.Equals(opt.Key, ch.DapAnDung, StringComparison.OrdinalIgnoreCase);
+                    var isChosen = string.Equals(opt.Key, ct.DapAnChon, StringComparison.OrdinalIgnoreCase);
+
+                    var optClass = "bg-light border";
+                    if (isCorrect)
+                    {
+                        optClass = "bg-success bg-opacity-10 border border-success text-success fw-semibold";
+                    }
+                    else if (isChosen && !isCorrect)
+                    {
+                        optClass = "bg-danger bg-opacity-10 border border-danger text-danger fw-semibold";
+                    }
+
+                    <div class="col-md-6">
+                        <div class="p-2 px-3 rounded-3 small d-flex align-items-center justify-content-between gap-2 @optClass">
+                            <span><strong>@opt.Key.</strong> @opt.Value</span>
+                            @if (isCorrect)
+                            {
+                                <i class="bi bi-check-circle-fill flex-shrink-0" title="Đáp án đúng"></i>
+                            }
+                            else if (isChosen)
+                            {
+                                <i class="bi bi-x-circle-fill flex-shrink-0" title="Đáp án bạn chọn"></i>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="small bg-primary bg-opacity-10 text-dark rounded-3 p-3">
+                <div class="fw-semibold text-primary mb-1">
+                    <i class="bi bi-lightbulb-fill me-1"></i>Giải thích AI (Đáp án đúng: @ch.DapAnDung@(string.IsNullOrEmpty(ct.DapAnChon) ? " • Bạn chưa chọn" : $" • Bạn chọn: {ct.DapAnChon}"))
+                </div>
+                <div>@(string.IsNullOrWhiteSpace(ch.GiaiThichAI) ? "Chưa có giải thích chi tiết." : ch.GiaiThichAI)</div>
+            </div>
+        </div>
+    }
+</div>

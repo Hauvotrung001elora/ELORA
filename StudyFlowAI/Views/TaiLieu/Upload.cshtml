@@ -1,0 +1,70 @@
+@model TaiLieuUploadViewModel
+@{
+    ViewData["Title"] = "Tải tài liệu lên";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại kho tài liệu
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="sf-card p-4 p-md-5">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="sf-icon-box bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                </div>
+                <div>
+                    <h2 class="h4 fw-bold mb-0">Tải tài liệu học tập</h2>
+                    <p class="text-muted small mb-0">Hỗ trợ tệp <strong>.pdf</strong>, <strong>.docx</strong>, <strong>.txt</strong> (tối đa 20 MB). Hệ thống sẽ tự động trích xuất văn bản.</p>
+                </div>
+            </div>
+
+            <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="MaMonHoc" class="form-label fw-semibold"></label>
+                    <select asp-for="MaMonHoc" asp-items="Model.MonHocOptions" class="form-select"></select>
+                    <span asp-validation-for="MaMonHoc" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TieuDe" class="form-label fw-semibold"></label>
+                    <input asp-for="TieuDe" class="form-control" placeholder="Để trống nếu muốn dùng tên tệp gốc" />
+                    <span asp-validation-for="TieuDe" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="TepTaiLieu" class="form-label fw-semibold"></label>
+                    <input asp-for="TepTaiLieu" type="file" class="form-control" accept=".pdf,.docx,.txt" />
+                    <div class="form-text">Lưu ý: Tệp PDF dạng ảnh scan không có lớp văn bản sẽ không trích xuất được chữ.</div>
+                    <span asp-validation-for="TepTaiLieu" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                    <button type="submit" class="btn btn-sf-primary rounded-pill px-4" id="btnUpload">
+                        <i class="bi bi-upload me-1"></i>Tải lên &amp; Trích xuất
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('uploadForm')?.addEventListener('submit', function () {
+            const btn = document.getElementById('btnUpload');
+            if (btn && $(this).valid()) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang trích xuất văn bản...';
+            }
+        });
+    </script>
+}

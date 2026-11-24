@@ -1,0 +1,179 @@
+@model TaiLieuDetailsViewModel
+@{
+    ViewData["Title"] = Model.TaiLieu.TieuDe;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <a asp-controller="MonHoc" asp-action="Details" asp-route-id="@Model.TaiLieu.MaMonHoc" class="text-decoration-none text-muted small">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại môn @Model.TaiLieu.MonHoc?.TenMonHoc
+    </a>
+    <a asp-action="Index" class="text-decoration-none text-muted small">Tất cả tài liệu</a>
+</div>
+
+<!-- Header thông tin tài liệu -->
+<div class="sf-card p-4 mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary">@Model.DinhDangFile</span>
+                @if (Model.TaiLieu.MonHoc != null)
+                {
+                    <span class="badge rounded-pill text-white" style="background-color: @Model.TaiLieu.MonHoc.MaMau;">
+                        @Model.TaiLieu.MonHoc.TenMonHoc
+                    </span>
+                }
+            </div>
+            <h2 class="h4 fw-bold mb-2">@Model.TaiLieu.TieuDe</h2>
+            <div class="d-flex flex-wrap gap-3 text-muted small">
+                <span><i class="bi bi-file-earmark me-1"></i>@Model.TenFileGoc</span>
+                <span><i class="bi bi-clock me-1"></i>@Model.TaiLieu.NgayTaiLen.ToString("dd/MM/yyyy HH:mm")</span>
+                <span><i class="bi bi-text-paragraph me-1"></i>~@Model.SoTuUocTinh.ToString("N0") từ (@Model.SoKyTuTrichXuat.ToString("N0") ký tự)</span>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="@Model.TaiLieu.DuongDanFile" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-download me-1"></i>Tải tệp gốc
+            </a>
+            <a asp-controller="DeThi" asp-action="TaoDe" asp-route-maTaiLieu="@Model.TaiLieu.MaTaiLieu" class="btn btn-sf-primary btn-sm rounded-pill px-3">
+                <i class="bi bi-patch-question-fill me-1"></i>Tạo đề trắc nghiệm AI
+            </a>
+            <form asp-action="Delete" asp-route-id="@Model.TaiLieu.MaTaiLieu" asp-route-returnMonHocId="@Model.TaiLieu.MaMonHoc" method="post" class="d-inline"
+                  onsubmit="return confirm('Xóa tài liệu này sẽ xóa cả các đề thi được tạo từ nó. Bạn chắc chắn?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                    <i class="bi bi-trash me-1"></i>Xóa
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (!Model.IsGeminiConfigured)
+{
+    <div class="alert alert-warning rounded-3 border-0 shadow-sm d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-key-fill fs-5"></i>
+        <div class="small">
+            Chưa cấu hình <code>Gemini:ApiKey</code>. Hãy thiết lập trong <code>appsettings.json</code> hoặc <code>dotnet user-secrets</code> để sử dụng tính năng Tóm tắt AI và Tạo đề trắc nghiệm AI.
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Cột trái: Tóm tắt AI & Nội dung trích xuất -->
+    <div class="col-lg-8">
+        <div class="sf-card p-4 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-3 mb-3 border-bottom">
+                <h3 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-stars text-primary"></i>Tóm tắt thông minh bằng Gemini AI
+                </h3>
+                <form asp-action="TaoTomTat" asp-route-id="@Model.TaiLieu.MaTaiLieu" method="post" id="summaryForm">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sf-primary btn-sm rounded-pill px-3" id="btnSummarize">
+                        <i class="bi bi-magic me-1"></i>@(string.IsNullOrWhiteSpace(Model.TaiLieu.TomTatAI) ? "Tạo tóm tắt bằng AI" : "Tạo lại tóm tắt AI")
+                    </button>
+                </form>
+            </div>
+
+            @if (string.IsNullOrWhiteSpace(Model.TaiLieu.TomTatAI))
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-journal-richtext fs-1 d-block mb-2 opacity-50"></i>
+                    <p class="mb-0 small">Nhấn nút <strong>"Tạo tóm tắt bằng AI"</strong> để Gemini tổng hợp các ý chính, khái niệm và trọng tâm ôn thi từ tài liệu này.</p>
+                </div>
+            }
+            else
+            {
+                <textarea id="rawMarkdownSummary" class="d-none">@Model.TaiLieu.TomTatAI</textarea>
+                <div id="renderedMarkdownSummary" class="sf-markdown-body"></div>
+            }
+        </div>
+
+        <div class="sf-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="h6 fw-bold mb-0">
+                    <i class="bi bi-file-text me-2 text-secondary"></i>Văn bản đã trích xuất
+                </h3>
+                <button class="btn btn-sm btn-light rounded-pill px-3" type="button" data-bs-toggle="collapse" data-bs-target="#extractedTextCollapse">
+                    Ẩn / Hiện nội dung
+                </button>
+            </div>
+            <div class="collapse mt-3" id="extractedTextCollapse">
+                <pre class="bg-light p-3 rounded-3 small mb-0" style="max-height: 420px; overflow-y: auto; white-space: pre-wrap;">@Model.TaiLieu.NoiDungTrichXuat</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Danh sách đề thi từ tài liệu -->
+    <div class="col-lg-4">
+        <div class="sf-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h6 fw-bold mb-0">
+                    <i class="bi bi-patch-question-fill me-1 text-primary"></i>Đề thi từ tài liệu (@Model.DeThis.Count)
+                </h3>
+                <a asp-controller="DeThi" asp-action="TaoDe" asp-route-maTaiLieu="@Model.TaiLieu.MaTaiLieu" class="btn btn-sm btn-outline-primary rounded-pill">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
+
+            @if (!Model.DeThis.Any())
+            {
+                <p class="text-muted small mb-3">Chưa có đề thi trắc nghiệm nào được tạo từ tài liệu này.</p>
+                <a asp-controller="DeThi" asp-action="TaoDe" asp-route-maTaiLieu="@Model.TaiLieu.MaTaiLieu" class="btn btn-sf-primary btn-sm w-100 rounded-pill">
+                    <i class="bi bi-stars me-1"></i>Tạo đề trắc nghiệm AI
+                </a>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var de in Model.DeThis)
+                    {
+                        var doKhoLabel = de.DoKho switch
+                        {
+                            "De" => "Dễ",
+                            "Kho" => "Khó",
+                            _ => "Trung bình"
+                        };
+                        <div class="p-3 rounded-3 border bg-light bg-opacity-50">
+                            <div class="fw-semibold small mb-1">@de.TieuDe</div>
+                            <div class="text-muted mb-2" style="font-size: 0.78rem;">
+                                @de.CauHois.Count câu &bull; @doKhoLabel &bull; @de.ThoiGianLamPhut phút &bull; @de.LuotLamBais.Count lượt làm
+                            </div>
+                            <a asp-controller="DeThi" asp-action="LamBai" asp-route-id="@de.MaDeThi" class="btn btn-sm btn-sf-primary rounded-pill px-3">
+                                <i class="bi bi-play-fill me-1"></i>Làm bài ngay
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+    <script>
+        (function () {
+            const rawEl = document.getElementById('rawMarkdownSummary');
+            const outEl = document.getElementById('renderedMarkdownSummary');
+            if (rawEl && outEl) {
+                if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                    marked.setOptions({ breaks: true, gfm: true });
+                    const dirtyHtml = marked.parse(rawEl.value || '');
+                    outEl.innerHTML = DOMPurify.sanitize(dirtyHtml);
+                } else {
+                    outEl.textContent = rawEl.value || '';
+                }
+            }
+
+            const form = document.getElementById('summaryForm');
+            const btn = document.getElementById('btnSummarize');
+            if (form && btn) {
+                form.addEventListener('submit', function () {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Gemini đang tóm tắt...';
+                });
+            }
+        })();
+    </script>
+}

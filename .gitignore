@@ -1,0 +1,40 @@
+# .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Rider / VS Code / Agent local configs
+.idea/
+.vscode/
+.agents/
+.antigravityignore
+
+# User uploads & runtime files
+StudyFlowAI/wwwroot/uploads/*
+!StudyFlowAI/wwwroot/uploads/.gitkeep
+
+# Local secrets (không bao giờ commit API key)
+appsettings.Local.json
+secrets.json
+*.env
+.env
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
