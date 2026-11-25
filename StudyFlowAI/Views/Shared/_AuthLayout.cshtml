@@ -6,7 +6,7 @@
     <title>@ViewData["Title"] - StudyFlow AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -15,57 +15,64 @@
     <div class="sf-auth-wrapper">
         <div class="sf-auth-card">
             <div class="row g-0">
+                <!-- 3D Banner cột bên trái -->
                 <div class="col-lg-5 sf-auth-banner d-none d-lg-flex">
                     <div>
-                        <a asp-controller="Home" asp-action="Index" class="d-inline-flex align-items-center gap-2 text-decoration-none text-white mb-4">
+                        <a asp-controller="Home" asp-action="Index" class="d-inline-flex align-items-center gap-3 text-decoration-none text-white mb-4">
                             <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
-                            <span class="fw-bold fs-5">StudyFlow AI</span>
+                            <div>
+                                <span class="fw-bold fs-4 d-block lh-1">StudyFlow AI</span>
+                                <small class="text-white-50" style="font-size: 0.72rem;">Intelligent Study Platform</small>
+                            </div>
                         </a>
-                        <h2 class="fw-bold fs-3 mb-3">Học tập thông minh, ôn thi hiệu quả cùng AI Gemini</h2>
-                        <p class="text-white-50 small mb-4">
-                            Biến slide và giáo trình PDF/DOCX thành bản tóm tắt trực quan, đề trắc nghiệm tự động và lịch ôn tập cá nhân hóa.
+                        <h2 class="fw-extrabold fs-2 mb-3 lh-sm">Bứt phá điểm số cùng công nghệ AI thế hệ mới</h2>
+                        <p class="text-white-50 mb-4" style="font-size: 0.9rem; line-height: 1.6;">
+                            Chuyển hóa tài liệu học tập thành đề trắc nghiệm, lịch trình ôn thi tối ưu và tăng cường khả năng tập trung cao độ.
                         </p>
 
                         <div class="sf-auth-feature">
-                            <i class="bi bi-file-earmark-text"></i>
+                            <i class="bi bi-file-earmark-richtext"></i>
                             <div>
-                                <div class="fw-semibold small">Tóm tắt tài liệu tức thì</div>
-                                <div class="text-white-50" style="font-size: 0.78rem;">Trích xuất nội dung PDF, DOCX, TXT và tóm lược trọng tâm.</div>
+                                <div class="fw-bold text-white small">Tóm tắt &amp; Trích xuất AI</div>
+                                <div class="text-white-50" style="font-size: 0.78rem;">Đọc hiểu PDF, DOCX đa môn học tức thì.</div>
                             </div>
                         </div>
                         <div class="sf-auth-feature">
-                            <i class="bi bi-patch-check"></i>
+                            <i class="bi bi-patch-question-fill" style="background: var(--sf-gradient-fire);"></i>
                             <div>
-                                <div class="fw-semibold small">AI Quiz Hub &amp; Giải thích chi tiết</div>
-                                <div class="text-white-50" style="font-size: 0.78rem;">Tạo đề thi theo độ khó, đếm ngược và chỉ rõ lỗ hổng kiến thức.</div>
+                                <div class="fw-bold text-white small">AI Quiz Hub 3D</div>
+                                <div class="text-white-50" style="font-size: 0.78rem;">Đề thi phân cấp độ khó kèm giải thích chi tiết.</div>
                             </div>
                         </div>
                         <div class="sf-auth-feature mb-0">
-                            <i class="bi bi-calendar-check"></i>
+                            <i class="bi bi-calendar-heart-fill" style="background: var(--sf-gradient-emerald);"></i>
                             <div>
-                                <div class="fw-semibold small">Lịch học AI &amp; Pomodoro</div>
-                                <div class="text-white-50" style="font-size: 0.78rem;">Tự động sắp lịch ôn thi và giữ nhịp tập trung mỗi ngày.</div>
+                                <div class="fw-bold text-white small">Lập lịch FullCalendar &amp; Pomodoro</div>
+                                <div class="text-white-50" style="font-size: 0.78rem;">Tự động sắp xếp thời gian biểu học tập chuẩn khoa học.</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="small text-white-50 pt-3 border-top border-white border-opacity-10">
-                        &copy; @DateTime.Now.Year StudyFlow AI
+                    <div class="small text-white-50 pt-4 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center">
+                        <span>&copy; @DateTime.Now.Year StudyFlow AI</span>
+                        <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 rounded-pill px-3">v2.5 Modern 3D</span>
                     </div>
                 </div>
 
+                <!-- Form đăng nhập/đăng ký bên phải -->
                 <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center">
                     <div class="d-lg-none mb-4 text-center">
                         <a asp-controller="Home" asp-action="Index" class="d-inline-flex align-items-center gap-2 text-decoration-none text-dark">
                             <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
-                            <span class="fw-bold fs-5">StudyFlow AI</span>
+                            <span class="fw-bold fs-4">StudyFlow AI</span>
                         </a>
                     </div>
 
                     @if (TempData["SuccessMessage"] is string successMsg)
                     {
-                        <div class="alert alert-success rounded-3 border-0 small py-2 mb-3">
-                            <i class="bi bi-check-circle-fill me-1"></i>@successMsg
+                        <div class="alert alert-success rounded-3 border-0 small py-2 mb-3 shadow-sm d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill fs-5"></i>
+                            <span>@successMsg</span>
                         </div>
                     }
 

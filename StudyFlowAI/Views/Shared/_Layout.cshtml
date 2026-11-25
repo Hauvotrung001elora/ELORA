@@ -40,6 +40,13 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
+    <!-- Ambient 3D Mesh Glow Spheres -->
+    <div class="sf-bg-mesh" aria-hidden="true">
+        <span class="sf-mesh-orb sf-mesh-orb-1"></span>
+        <span class="sf-mesh-orb sf-mesh-orb-2"></span>
+        <span class="sf-mesh-orb sf-mesh-orb-3"></span>
+    </div>
+
     <div class="sf-shell">
         <!-- Desktop Sidebar -->
         <aside class="sf-sidebar d-none d-lg-flex">
@@ -198,17 +205,20 @@
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <div class="dropdown">
-                            <button class="btn btn-light border rounded-pill d-flex align-items-center gap-2 py-1 ps-1 pe-3 dropdown-toggle"
+                            <button class="btn btn-light sf-user-trigger rounded-pill d-flex align-items-center gap-2 py-1 ps-1 pe-3 dropdown-toggle"
                                     type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="sf-avatar">@initials</span>
+                                <span class="sf-avatar-ring">
+                                    <span class="sf-avatar">@initials</span>
+                                </span>
                                 <span class="d-none d-sm-inline text-start lh-sm">
                                     <span class="d-block fw-semibold small text-dark">@displayName</span>
-                                    <span class="d-block text-muted" style="font-size: 0.72rem;">
+                                    <span class="sf-role-pill @(isAdmin ? "sf-role-admin" : "sf-role-student")">
+                                        <i class="bi @(isAdmin ? "bi-shield-lock-fill" : "bi-mortarboard-fill")"></i>
                                         @(isAdmin ? "Quản trị viên" : "Sinh viên")
                                     </span>
                                 </span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                            <ul class="dropdown-menu dropdown-menu-end sf-glass-dropdown border-0 mt-2">
                                 <li class="px-3 py-2 border-bottom">
                                     <div class="fw-semibold small">@displayName</div>
                                     <div class="text-muted small">@currentUser?.Email</div>

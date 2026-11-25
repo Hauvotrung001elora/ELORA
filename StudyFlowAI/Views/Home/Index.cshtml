@@ -7,7 +7,14 @@
 @if (!isAuthenticated)
 {
     <!-- ==================== LANDING PAGE (CHƯA ĐĂNG NHẬP) ==================== -->
-    <div class="sf-hero sf-landing-hero mb-4 shadow-sm">
+    <div class="sf-hero sf-landing-hero mb-4">
+        <div class="sf-hero-3d-shapes" aria-hidden="true">
+            <span class="sf-float-cube sf-float-cube-1"></span>
+            <span class="sf-float-cube sf-float-cube-2"></span>
+            <span class="sf-float-cube sf-float-cube-3"></span>
+            <span class="sf-float-badge sf-float-badge-1"><i class="bi bi-stars"></i></span>
+            <span class="sf-float-badge sf-float-badge-2"><i class="bi bi-cpu-fill"></i></span>
+        </div>
         <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
             <div class="col-lg-7">
                 <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-2 mb-3">
@@ -27,7 +34,7 @@
                 </div>
             </div>
             <div class="col-lg-5">
-                <div class="bg-white bg-opacity-10 rounded-4 p-4 border border-white border-opacity-25 backdrop-blur">
+                <div class="sf-hero-glass-panel rounded-4 p-4">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="small fw-semibold text-white-50 text-uppercase">Trọn bộ 4 trụ cột học tập</span>
                         <span class="badge bg-info text-dark rounded-pill">Miễn phí</span>
@@ -65,73 +72,73 @@
 
     <div class="row g-4 mb-4">
         <div class="col-md-6 col-xl-3">
-            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column" style="border-top: 4px solid #6366f1;">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="sf-icon-box bg-primary bg-opacity-10 text-primary">
+                    <span class="sf-icon-box text-white" style="background: var(--sf-gradient-primary);">
                         <i class="bi bi-file-earmark-text-fill"></i>
                     </span>
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">Trụ cột 1</span>
+                    <span class="badge rounded-pill px-3 py-1" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">Trụ cột 1</span>
                 </div>
                 <h5 class="fw-bold mb-2">Quản lý Tài liệu &amp; Tóm tắt AI</h5>
                 <p class="text-muted small mb-3 flex-grow-1">
                     Phân loại tài liệu PDF, DOCX, TXT theo từng môn học. Tự động trích xuất văn bản và nhờ Gemini AI tóm tắt trọng tâm rõ ràng theo từng mục.
                 </p>
-                <div class="small text-primary fw-medium">
-                    <i class="bi bi-check2-circle me-1"></i>Tiết kiệm đến 70% thời gian đọc giáo trình
+                <div class="small fw-semibold" style="color: #6366f1;">
+                    <i class="bi bi-stars me-1"></i>Tiết kiệm đến 70% thời gian đọc
                 </div>
             </div>
         </div>
 
         <div class="col-md-6 col-xl-3">
-            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column" style="border-top: 4px solid #f43f5e;">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="sf-icon-box bg-success bg-opacity-10 text-success">
+                    <span class="sf-icon-box text-white" style="background: var(--sf-gradient-fire);">
                         <i class="bi bi-patch-question-fill"></i>
                     </span>
-                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Trụ cột 2</span>
+                    <span class="badge rounded-pill px-3 py-1" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e;">Trụ cột 2</span>
                 </div>
                 <h5 class="fw-bold mb-2">AI Quiz Hub</h5>
                 <p class="text-muted small mb-3 flex-grow-1">
                     Sinh đề trắc nghiệm chuẩn từ chính tài liệu của bạn với 3 mức độ khó. Làm bài thi thử có đếm ngược, chấm điểm tức thì kèm giải thích chi tiết.
                 </p>
-                <div class="small text-success fw-medium">
-                    <i class="bi bi-check2-circle me-1"></i>Lưu lịch sử &amp; nhận xét AI cá nhân hóa
+                <div class="small fw-semibold" style="color: #f43f5e;">
+                    <i class="bi bi-fire me-1"></i>Luyện đề thi thử thời gian thực
                 </div>
             </div>
         </div>
 
         <div class="col-md-6 col-xl-3">
-            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column" style="border-top: 4px solid #10b981;">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="sf-icon-box bg-warning bg-opacity-10 text-warning">
+                    <span class="sf-icon-box text-white" style="background: var(--sf-gradient-emerald);">
                         <i class="bi bi-calendar2-week-fill"></i>
                     </span>
-                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Trụ cột 3</span>
+                    <span class="badge rounded-pill px-3 py-1" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Trụ cột 3</span>
                 </div>
                 <h5 class="fw-bold mb-2">AI Study Planner</h5>
                 <p class="text-muted small mb-3 flex-grow-1">
                     AI phân tích ngày thi, độ khó môn học và lịch sử điểm yếu để đề xuất thời khóa biểu ôn tập tối ưu ngay trên lịch tương tác FullCalendar.
                 </p>
-                <div class="small text-warning fw-medium">
-                    <i class="bi bi-check2-circle me-1"></i>Kéo thả linh hoạt &amp; theo dõi trạng thái
+                <div class="small fw-semibold" style="color: #10b981;">
+                    <i class="bi bi-calendar-check me-1"></i>Chống trùng lịch thông minh
                 </div>
             </div>
         </div>
 
         <div class="col-md-6 col-xl-3">
-            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column">
+            <div class="sf-card sf-card-hover p-4 h-100 d-flex flex-column" style="border-top: 4px solid #06b6d4;">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="sf-icon-box bg-info bg-opacity-10 text-info">
+                    <span class="sf-icon-box text-white" style="background: var(--sf-gradient-accent);">
                         <i class="bi bi-stopwatch-fill"></i>
                     </span>
-                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill">Trụ cột 4</span>
+                    <span class="badge rounded-pill px-3 py-1" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">Trụ cột 4</span>
                 </div>
                 <h5 class="fw-bold mb-2">Pomodoro Focus</h5>
                 <p class="text-muted small mb-3 flex-grow-1">
                     Đồng hồ tập trung chuẩn 25/5 phút liên kết trực tiếp với từng buổi học hôm nay. Ghi nhận thời lượng học thực tế và tổng hợp trên Dashboard.
                 </p>
-                <div class="small text-info fw-medium">
-                    <i class="bi bi-check2-circle me-1"></i>Tự động cập nhật tiến độ sau mỗi phiên
+                <div class="small fw-semibold" style="color: #06b6d4;">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>Tối ưu hiệu suất não bộ
                 </div>
             </div>
         </div>
@@ -166,7 +173,14 @@ else
     var pomoWeekDisplay = gioTuan > 0 ? $"{gioTuan}g {phutDuTuan}p" : $"{vm.TongPhutPomodoroTuanNay} phút";
 
     <!-- Hero chào mừng -->
-    <div class="sf-hero mb-4 shadow-sm">
+    <div class="sf-hero mb-4">
+        <div class="sf-hero-3d-shapes" aria-hidden="true">
+            <span class="sf-float-cube sf-float-cube-1"></span>
+            <span class="sf-float-cube sf-float-cube-2"></span>
+            <span class="sf-float-cube sf-float-cube-3"></span>
+            <span class="sf-float-badge sf-float-badge-1"><i class="bi bi-stars"></i></span>
+            <span class="sf-float-badge sf-float-badge-2"><i class="bi bi-lightning-charge-fill"></i></span>
+        </div>
         <div class="row align-items-center g-3 position-relative" style="z-index: 1;">
             <div class="col-lg-8">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
