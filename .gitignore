@@ -28,11 +28,15 @@ bld/
 ELORA/wwwroot/uploads/*
 !ELORA/wwwroot/uploads/.gitkeep
 
-# Local secrets (không bao giờ commit API key)
+# Local secrets & publish outputs (không bao giờ commit API key / mật khẩu SQL)
 appsettings.Local.json
+appsettings.Production.json
 secrets.json
 *.env
 .env
+publish-somee/
+ELORA-somee.zip
+elora-schema.sql
 
 # OS generated files
 Thumbs.db

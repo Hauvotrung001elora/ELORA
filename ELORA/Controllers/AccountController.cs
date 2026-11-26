@@ -25,11 +25,18 @@ public class AccountController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Login(string? returnUrl = null)
+    public IActionResult Login(string? returnUrl = null, bool locked = false)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectToAction("Index", "Home");
+        }
+
+        if (locked)
+        {
+            ModelState.AddModelError(
+                string.Empty,
+                "Tài khoản của bạn đã bị quản trị viên khóa. Phiên đăng nhập hiện tại đã bị chấm dứt.");
         }
 
         return View(new LoginViewModel { ReturnUrl = returnUrl });
