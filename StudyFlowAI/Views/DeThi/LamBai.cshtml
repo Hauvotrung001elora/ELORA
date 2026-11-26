@@ -15,32 +15,37 @@
     <input type="hidden" name="ThoiGianBatDau" value="@Model.ThoiGianBatDau.ToString("O")" />
 
     <!-- Thanh trạng thái cố định khi cuộn -->
-    <div class="sf-exam-header sf-card p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div class="min-w-0">
-            <div class="d-flex align-items-center gap-2 mb-1">
-                @if (Model.DeThi.TaiLieu?.MonHoc != null)
-                {
-                    <span class="badge rounded-pill text-white" style="background-color: @Model.DeThi.TaiLieu.MonHoc.MaMau;">
-                        @Model.DeThi.TaiLieu.MonHoc.TenMonHoc
-                    </span>
-                }
-                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">@doKhoText</span>
+    <div class="sf-exam-header sf-card p-3 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    @if (Model.DeThi.TaiLieu?.MonHoc != null)
+                    {
+                        <span class="badge rounded-pill text-white" style="background-color: @Model.DeThi.TaiLieu.MonHoc.MaMau;">
+                            @Model.DeThi.TaiLieu.MonHoc.TenMonHoc
+                        </span>
+                    }
+                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">@doKhoText</span>
+                </div>
+                <h2 class="h5 fw-bold mb-0 text-truncate">@Model.DeThi.TieuDe</h2>
             </div>
-            <h2 class="h5 fw-bold mb-0 text-truncate">@Model.DeThi.TieuDe</h2>
-        </div>
 
-        <div class="d-flex align-items-center gap-3">
-            <div class="text-end">
-                <div class="text-muted" style="font-size: 0.72rem;">Đã trả lời</div>
-                <div class="fw-bold small"><span id="answeredCount">0</span> / @Model.CauHois.Count câu</div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end">
+                    <div class="text-muted" style="font-size: 0.72rem;">Đã trả lời</div>
+                    <div class="fw-bold small"><span id="answeredCount">0</span> / @Model.CauHois.Count câu</div>
+                </div>
+                <div class="sf-timer-box" id="timerBox">
+                    <i class="bi bi-stopwatch-fill me-1"></i>
+                    <span id="countdownDisplay">@Model.DeThi.ThoiGianLamPhut.ToString("00"):00</span>
+                </div>
+                <button type="button" class="btn btn-sf-primary rounded-pill px-4" id="btnSubmitManual">
+                    <i class="bi bi-send-check me-1"></i>Nộp bài
+                </button>
             </div>
-            <div class="sf-timer-box" id="timerBox">
-                <i class="bi bi-stopwatch-fill me-1"></i>
-                <span id="countdownDisplay">@Model.DeThi.ThoiGianLamPhut.ToString("00"):00</span>
-            </div>
-            <button type="button" class="btn btn-sf-primary rounded-pill px-4" id="btnSubmitManual">
-                <i class="bi bi-send-check me-1"></i>Nộp bài
-            </button>
+        </div>
+        <div class="sf-exam-progress mt-3" aria-label="Tiến độ trả lời câu hỏi">
+            <div class="sf-exam-progress-bar" id="examProgressBar"></div>
         </div>
     </div>
 
@@ -123,6 +128,7 @@
             const countdownEl = document.getElementById('countdownDisplay');
             const timerBox = document.getElementById('timerBox');
             const answeredCountEl = document.getElementById('answeredCount');
+            const examProgressBar = document.getElementById('examProgressBar');
             const btnSubmitManual = document.getElementById('btnSubmitManual');
             const answeredSet = new Set();
 
@@ -131,6 +137,10 @@
                     const qIndex = this.dataset.qIndex;
                     answeredSet.add(qIndex);
                     answeredCountEl.textContent = answeredSet.size;
+                    if (examProgressBar && totalQuestions > 0) {
+                        const pct = Math.min(100, Math.round((answeredSet.size * 100) / totalQuestions));
+                        examProgressBar.style.width = pct + '%';
+                    }
                     const pill = document.getElementById('pill-' + qIndex);
                     if (pill) pill.classList.add('answered');
                 });

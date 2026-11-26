@@ -5,7 +5,11 @@
 
 <form id="pomodoroTokenForm" class="d-none">@Html.AntiForgeryToken()</form>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+<button type="button" class="btn btn-outline-light rounded-pill px-3 sf-zen-exit-btn d-none" id="btnExitZen" onclick="toggleZenMode(false)">
+    <i class="bi bi-fullscreen-exit me-1"></i>Thoát Zen Mode (Esc)
+</button>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 sf-pomo-hide-in-zen">
     <div>
         <h2 class="h4 fw-bold mb-1">Pomodoro Focus Timer</h2>
         <p class="text-muted small mb-0">Tập trung học sâu theo phiên, tự động ghi nhận thời gian học và đồng bộ hoàn thành buổi học trong lịch.</p>
@@ -17,8 +21,13 @@
 
 <div class="row g-4">
     <!-- Cột trái: Đồng hồ Pomodoro -->
-    <div class="col-lg-7">
-        <div class="sf-card p-4 p-md-5 text-center">
+    <div class="col-lg-7 sf-pomo-stage">
+        <div class="sf-card sf-pomo-card p-4 p-md-5 text-center" id="pomoCard">
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="btnToggleZen" onclick="toggleZenMode()">
+                    <i class="bi bi-arrows-fullscreen me-1"></i>Chế độ Tập trung (Zen)
+                </button>
+            </div>
             <!-- Chọn chế độ Học / Nghỉ ngắn -->
             <div class="d-inline-flex bg-light p-1 rounded-pill mb-4 border">
                 <button type="button" class="btn btn-sm rounded-pill px-4 fw-semibold sf-mode-btn active" id="btnModeStudy" onclick="switchMode('study')">
@@ -87,7 +96,7 @@
     </div>
 
     <!-- Cột phải: Thống kê & Lịch sử phiên -->
-    <div class="col-lg-5">
+    <div class="col-lg-5 sf-pomo-hide-in-zen">
         <div class="row g-3 mb-4">
             <div class="col-6">
                 <div class="sf-card p-3 h-100">
@@ -175,6 +184,32 @@
             const statusText = document.getElementById('pomoStatusText');
             const btnStartPause = document.getElementById('btnStartPause');
             const saveAlert = document.getElementById('pomoSaveAlert');
+            const pomoCard = document.getElementById('pomoCard');
+            const btnToggleZen = document.getElementById('btnToggleZen');
+            const btnExitZen = document.getElementById('btnExitZen');
+
+            window.toggleZenMode = function (forceState) {
+                const isZen = typeof forceState === 'boolean'
+                    ? forceState
+                    : !document.body.classList.contains('sf-zen-active');
+
+                document.body.classList.toggle('sf-zen-active', isZen);
+                btnExitZen?.classList.toggle('d-none', !isZen);
+
+                if (btnToggleZen) {
+                    btnToggleZen.innerHTML = isZen
+                        ? '<i class="bi bi-fullscreen-exit me-1"></i>Thoát Zen Mode'
+                        : '<i class="bi bi-arrows-fullscreen me-1"></i>Chế độ Tập trung (Zen)';
+                    btnToggleZen.classList.toggle('btn-outline-light', isZen);
+                    btnToggleZen.classList.toggle('btn-outline-secondary', !isZen);
+                }
+            };
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && document.body.classList.contains('sf-zen-active')) {
+                    window.toggleZenMode(false);
+                }
+            });
 
             function updateDisplay() {
                 const m = Math.floor(remainingSeconds / 60);
@@ -310,6 +345,7 @@
                     timerId = null;
                 }
                 isRunning = false;
+                pomoCard?.classList.remove('sf-pomo-running');
                 btnStartPause.innerHTML = '<i class="bi bi-play-fill me-1"></i>Bắt đầu';
             }
 
@@ -336,6 +372,7 @@
                 }
 
                 isRunning = true;
+                pomoCard?.classList.add('sf-pomo-running');
                 statusText.textContent = mode === 'study' ? 'Đang tập trung học...' : 'Đang nghỉ giải lao...';
                 btnStartPause.innerHTML = '<i class="bi bi-pause-fill me-1"></i>Tạm dừng';
 
@@ -348,6 +385,7 @@
                         playChime();
                         if (mode === 'study') {
                             statusText.textContent = 'Hoàn thành phiên học!';
+                            window.sfLaunchConfetti?.(2000);
                             await saveCompletedSession();
                         } else {
                             statusText.textContent = 'Hết giờ nghỉ! Sẵn sàng quay lại học.';
