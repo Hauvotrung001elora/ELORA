@@ -1,4 +1,4 @@
-# StudyFlow AI
+# ELORA
 
 Website Hỗ trợ Học tập và Ôn thi Cá nhân hóa xây dựng trên **ASP.NET Core MVC (.NET 9)**, **Entity Framework Core (SQL Server)** và **Google Gemini AI**.
 
@@ -15,23 +15,23 @@ Website Hỗ trợ Học tập và Ôn thi Cá nhân hóa xây dựng trên **AS
 
 ### 1. Yêu cầu môi trường
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- SQL Server LocalDB (đi kèm Visual Studio) hoặc SQL Server (chỉnh lại `ConnectionStrings:DefaultConnection` trong `StudyFlowAI/appsettings.json` nếu cần).
+- SQL Server LocalDB (đi kèm Visual Studio) hoặc SQL Server (chỉnh lại `ConnectionStrings:DefaultConnection` trong `ELORA/appsettings.json` nếu cần).
 
 ### 2. Clone & chạy lần đầu
 ```powershell
 git clone https://github.com/Hauvotrung001elora/ELORA.git
-cd ELORA/StudyFlowAI
+cd ELORA/ELORA
 dotnet restore
 dotnet run
 ```
 Khi chạy lần đầu, hệ thống (`DbSeeder`) sẽ **tự động tạo cơ sở dữ liệu** và khởi tạo tài khoản Admin mặc định:
-- **Email:** `admin@studyflow.vn`
+- **Email:** `admin@elora.vn`
 - **Mật khẩu:** `Admin@123`
 
 ### 3. Cấu hình Gemini API Key (tùy chọn để test tính năng AI)
 > **Lưu ý bảo mật:** Tuyệt đối **không** ghi API Key trực tiếp vào `appsettings.json` rồi push lên GitHub. Hãy lưu bằng `.NET User Secrets`:
 ```powershell
-cd StudyFlowAI
+cd ELORA
 dotnet user-secrets set "Gemini:ApiKey" "YOUR_GEMINI_API_KEY"
 ```
 
@@ -44,9 +44,9 @@ dotnet user-secrets set "Gemini:ApiKey" "YOUR_GEMINI_API_KEY"
    git checkout -b feat/ui-design
    ```
 2. Các vùng sửa giao diện:
-   - Hình ảnh / logo / banner: đặt trong `StudyFlowAI/wwwroot/images/`
-   - CSS / hiệu ứng: `StudyFlowAI/wwwroot/css/site.css`, `StudyFlowAI/wwwroot/js/site.js`
-   - Giao diện HTML/Bootstrap: `StudyFlowAI/Views/...`
+   - Hình ảnh / logo / banner: đặt trong `ELORA/wwwroot/images/`
+   - CSS / hiệu ứng: `ELORA/wwwroot/css/site.css`, `ELORA/wwwroot/js/site.js`
+   - Giao diện HTML/Bootstrap: `ELORA/Views/...`
 3. Khi chỉnh sửa các file `.cshtml`, giữ nguyên các thuộc tính logic: `@model`, `asp-controller`, `asp-action`, `asp-route-*`, `name="..."`, `id="..."` (dùng bởi JS) và `@Html.AntiForgeryToken()`.
 4. Sau khi hoàn tất, đẩy nhánh lên GitHub và tạo Pull Request vào nhánh `main`:
    ```powershell

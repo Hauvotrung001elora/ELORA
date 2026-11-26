@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="eloraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="sparkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#0f172a"/>
+  <path d="M18 17h24c-2.5 3-3.5 5-3.5 7H25v7h16c-1 4-4 7-9 7H25v4c0 3 2 5 5 5 4 0 7-4 13-4 4 0 7 2 8 5-4-1.5-7-1.5-10 0-3.5 1.8-7 3-11 3-9 0-14-5-14-14V21c0-2.2 1.8-4 4-4z" fill="url(#eloraGrad)"/>
+  <path d="M46 12l1.8 4.7L52.5 18.5l-4.7 1.8L46 25l-1.8-4.7-4.7-1.8 4.7-1.8z" fill="url(#sparkGrad)"/>
+</svg>

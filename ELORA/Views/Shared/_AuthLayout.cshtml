@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - StudyFlow AI</title>
+    <title>@ViewData["Title"] - ELORA</title>
+    <link rel="icon" type="image/svg+xml" href="~/images/elora-favicon.svg" asp-append-version="true" />
+    <link rel="apple-touch-icon" href="~/images/elora-logo.jpg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -20,9 +22,11 @@
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <a asp-controller="Home" asp-action="Index" class="d-inline-flex align-items-center gap-3 text-decoration-none text-white">
-                                <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
+                                <span class="sf-brand-icon sf-brand-icon-img">
+                                    <img src="~/images/elora-logo.jpg" alt="ELORA" class="sf-brand-logo" />
+                                </span>
                                 <div>
-                                    <span class="fw-bold fs-4 d-block lh-1">StudyFlow AI</span>
+                                    <span class="fw-bold fs-4 d-block lh-1">ELORA</span>
                                     <small class="text-white-50" style="font-size: 0.72rem;">Intelligent Study Platform</small>
                                 </div>
                             </a>
@@ -68,7 +72,7 @@
                     </div>
 
                     <div class="small text-white-50 pt-4 border-top border-white border-opacity-10 d-flex justify-content-between align-items-center">
-                        <span>&copy; @DateTime.Now.Year StudyFlow AI</span>
+                        <span>&copy; @DateTime.Now.Year ELORA</span>
                         <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 rounded-pill px-3">v2.5 Modern 3D</span>
                     </div>
                 </div>
@@ -77,8 +81,10 @@
                 <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center">
                     <div class="d-lg-none mb-4 text-center">
                         <a asp-controller="Home" asp-action="Index" class="d-inline-flex align-items-center gap-2 text-decoration-none text-dark">
-                            <span class="sf-brand-icon"><i class="bi bi-stars"></i></span>
-                            <span class="fw-bold fs-4">StudyFlow AI</span>
+                            <span class="sf-brand-icon sf-brand-icon-img">
+                                <img src="~/images/elora-logo.jpg" alt="ELORA" class="sf-brand-logo" />
+                            </span>
+                            <span class="fw-bold fs-4">ELORA</span>
                         </a>
                     </div>
 

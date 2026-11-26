@@ -32,8 +32,12 @@ public static class DbSeeder
                 }
             }
 
-            const string adminEmail = "admin@studyflow.vn";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            const string adminEmail = "admin@elora.vn";
+            const string legacyAdminEmail = "admin@studyflow.vn";
+
+            var adminUser = await userManager.FindByEmailAsync(adminEmail)
+                            ?? await userManager.FindByEmailAsync(legacyAdminEmail);
+
             if (adminUser is null)
             {
                 adminUser = new NguoiDung
@@ -41,7 +45,7 @@ public static class DbSeeder
                     UserName = adminEmail,
                     Email = adminEmail,
                     EmailConfirmed = true,
-                    HoTen = "Quản trị viên StudyFlow AI",
+                    HoTen = "Quản trị viên ELORA",
                     NgayTao = DateTime.Now
                 };
 
@@ -56,9 +60,37 @@ public static class DbSeeder
                         string.Join("; ", createResult.Errors.Select(e => e.Description)));
                 }
             }
-            else if (!await userManager.IsInRoleAsync(adminUser, RoleAdmin))
+            else
             {
-                await userManager.AddToRoleAsync(adminUser, RoleAdmin);
+                if (!string.Equals(adminUser.Email, adminEmail, StringComparison.OrdinalIgnoreCase))
+                {
+                    await userManager.SetEmailAsync(adminUser, adminEmail);
+                    await userManager.SetUserNameAsync(adminUser, adminEmail);
+                }
+
+                var needUpdateProfile = false;
+                if (!adminUser.EmailConfirmed)
+                {
+                    adminUser.EmailConfirmed = true;
+                    needUpdateProfile = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(adminUser.HoTen) ||
+                    string.Equals(adminUser.HoTen, "Quản trị viên StudyFlow AI", StringComparison.OrdinalIgnoreCase))
+                {
+                    adminUser.HoTen = "Quản trị viên ELORA";
+                    needUpdateProfile = true;
+                }
+
+                if (needUpdateProfile)
+                {
+                    await userManager.UpdateAsync(adminUser);
+                }
+
+                if (!await userManager.IsInRoleAsync(adminUser, RoleAdmin))
+                {
+                    await userManager.AddToRoleAsync(adminUser, RoleAdmin);
+                }
             }
         }
         catch (Exception ex)

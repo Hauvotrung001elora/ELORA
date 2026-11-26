@@ -1,4 +1,4 @@
-﻿// StudyFlow AI - Interactive 3D Tilt, Reveal & Canvas Confetti
+﻿// ELORA - Interactive 3D Tilt, Reveal & Canvas Confetti
 (function () {
     'use strict';
 

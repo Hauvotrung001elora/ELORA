@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>StudyFlowAI</RootNamespace>
     <UserSecretsId>157aabbc-3cfe-481e-be80-ca37d1c1c955</UserSecretsId>
   </PropertyGroup>
 

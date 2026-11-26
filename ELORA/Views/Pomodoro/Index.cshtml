@@ -216,7 +216,7 @@
                 const s = remainingSeconds % 60;
                 const formatted = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                 timeDisplay.textContent = formatted;
-                document.title = isRunning ? `(${formatted}) Pomodoro - StudyFlow AI` : 'Đồng hồ Pomodoro - StudyFlow AI';
+                document.title = isRunning ? `(${formatted}) Pomodoro - ELORA` : 'Đồng hồ Pomodoro - ELORA';
 
                 const progress = totalSeconds > 0 ? (remainingSeconds / totalSeconds) : 0;
                 const offset = circumference * (1 - progress);

@@ -62,7 +62,7 @@ public class AccountController : Controller
         if (result.Succeeded)
         {
             _logger.LogInformation("Người dùng {Email} đã đăng nhập thành công.", email);
-            TempData["SuccessMessage"] = $"Chào mừng {user.HoTen} quay trở lại StudyFlow AI!";
+            TempData["SuccessMessage"] = $"Chào mừng {user.HoTen} quay trở lại ELORA!";
 
             if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
             {
@@ -132,7 +132,7 @@ public class AccountController : Controller
             await _signInManager.SignInAsync(user, isPersistent: false);
 
             _logger.LogInformation("Tài khoản sinh viên mới {Email} đã được tạo.", email);
-            TempData["SuccessMessage"] = "Đăng ký tài khoản thành công! Bắt đầu hành trình học tập cùng StudyFlow AI.";
+            TempData["SuccessMessage"] = "Đăng ký tài khoản thành công! Bắt đầu hành trình học tập cùng ELORA.";
 
             if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
             {
